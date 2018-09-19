@@ -14,7 +14,7 @@ class BaseReview(models.Model):
     """
     Abstract base class for Review models. Can be subclassed to specify application-specific fields, e.g. review type
     """
-    page_revision = models.ForeignKey('wagtailcore.PageRevision', related_name='reviews', on_delete=models.CASCADE, editable=False)
+    page_revision = models.ForeignKey('wagtailcore.PageRevision', related_name='+', on_delete=models.CASCADE, editable=False)
     status = models.CharField(max_length=30, default='open', choices=REVIEW_STATUS_CHOICES, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

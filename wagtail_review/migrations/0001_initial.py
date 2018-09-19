@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('status', models.CharField(choices=[('open', 'Open'), ('closed', 'Closed')], default='open', editable=False, max_length=30)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('page_revision', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='reviews', to='wagtailcore.PageRevision')),
+                ('page_revision', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='wagtailcore.PageRevision')),
             ],
             options={
                 'abstract': False,
