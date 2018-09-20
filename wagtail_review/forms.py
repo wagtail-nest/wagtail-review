@@ -3,12 +3,14 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 
-from wagtail_review.models import get_review_model
+import swapper
+
+Review = swapper.load_model('wagtail_review', 'Review')
 
 
 class CreateReviewForm(forms.ModelForm):
     class Meta:
-        model = get_review_model()
+        model = Review
         fields = []
 
 

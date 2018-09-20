@@ -11,6 +11,9 @@ setup(
     url='https://github.com/torchbox/wagtail-review',
     packages=find_packages(),
     include_package_data=True,
+    install_requires=[
+        'swapper>=1.1,<1.2',
+    ],
     license='BSD',
     long_description="An extension for Wagtail allowing pages to be submitted for review (including to non-Wagtail users) prior to publication",
     classifiers=[

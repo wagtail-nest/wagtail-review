@@ -1,7 +1,10 @@
-from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+
+import swapper
+
+# make the setting name WAGTAILREVIEW_REVIEW_MODEL rather than WAGTAIL_REVIEW_REVIEW_MODEL
+swapper.set_app_prefix('wagtail_review', 'wagtailreview')
 
 
 REVIEW_STATUS_CHOICES = [
@@ -23,27 +26,5 @@ class BaseReview(models.Model):
 
 
 class Review(BaseReview):
-    pass
-
-
-def get_review_model_string():
-    """
-    Get the dotted ``app.Model`` name for the review model as a string.
-    """
-    return getattr(settings, 'WAGTAILREVIEW_REVIEW_MODEL', 'wagtail_review.Review')
-
-
-def get_review_model():
-    """
-    Get the review model from the ``WAGTAILREVIEW_REVIEW_MODEL`` setting.
-    """
-    from django.apps import apps
-    model_string = get_review_model_string()
-    try:
-        return apps.get_model(model_string)
-    except ValueError:
-        raise ImproperlyConfigured("WAGTAILREVIEW_REVIEW_MODEL must be of the form 'app_label.model_name'")
-    except LookupError:
-        raise ImproperlyConfigured(
-            "WAGTAILREVIEW_REVIEW_MODEL refers to model '%s' that has not been installed" % model_string
-        )
+    class Meta:
+        swappable = swapper.swappable_setting('wagtail_review', 'Review')
