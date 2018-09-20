@@ -18,7 +18,7 @@ def get_review_form_class():
     """
     Get the review form class from the ``WAGTAILREVIEW_REVIEW_FORM`` setting.
     """
-    form_class_name = getattr(settings, 'WAGTAILREVIEW_REVIEW_FORM', 'wagtail_review.Review')
+    form_class_name = getattr(settings, 'WAGTAILREVIEW_REVIEW_FORM', 'wagtail_review.forms.CreateReviewForm')
     try:
         return import_string(form_class_name)
     except ImportError:
