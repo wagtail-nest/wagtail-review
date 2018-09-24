@@ -23,6 +23,9 @@ class SubmitForReviewMenuItem(ActionMenuItem):
 
     class Media:
         js = ['wagtail_review/js/submit.js']
+        css = {
+            'all': ['wagtail_review/css/create_review.css']
+        }
 
 
 @hooks.register('construct_page_action_menu')
