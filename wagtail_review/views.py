@@ -18,7 +18,7 @@ def create_review(request):
     return render_modal_workflow(
         request, 'wagtail_review/create_review.html', None, {
             'form': form
-        }, json_data=None
+        }, json_data={'step': 'form'}
     )
 
 

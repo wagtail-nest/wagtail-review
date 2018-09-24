@@ -18,7 +18,7 @@
                     <label for="id_create_review-reviewer_autocomplete">Reviewers:</label>
                     <div class="field-content">
                         <div class="input">
-                            <input type="text" id="id_create_review-reviewer_autocomplete" class="reviewer-autocomplete">
+                            <input type="text" id="id_create_review-reviewer_autocomplete" class="reviewer-autocomplete" data-autocomplete-url="{% url 'wagtail_review:autocomplete_users' %}">
                             <button type="button" class="button text-replace icon icon-plus" class="reviewer-add">Add reviewer</button>
                         </div>
                         <p class="help">Enter a user name or email address</p>
