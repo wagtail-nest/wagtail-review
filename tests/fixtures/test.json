@@ -43,5 +43,40 @@
         "port": 80,
         "is_default_site": true
     }
+},
+
+{
+    "pk": 1,
+    "model": "auth.user",
+    "fields": {
+        "username": "spongebob",
+        "first_name": "Spongebob",
+        "last_name": "Squarepants",
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": true,
+        "groups": [
+        ],
+        "user_permissions": [],
+        "password": "md5$seasalt$1e9bf2bf5606aa5c39852cc30f0f6f22",
+        "email": "spongebob@example.com"
+    }
+},
+{
+    "pk": 2,
+    "model": "auth.user",
+    "fields": {
+        "username": "homer",
+        "first_name": "Homer",
+        "last_name": "Simpson",
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": true,
+        "groups": [
+        ],
+        "user_permissions": [],
+        "password": "md5$seasalt$1e9bf2bf5606aa5c39852cc30f0f6f22",
+        "email": "homer@example.com"
+    }
 }
 ]

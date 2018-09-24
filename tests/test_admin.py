@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 
@@ -26,3 +28,18 @@ class TestAdminViews(TestCase):
     def test_create_review(self):
         response = self.client.get('/admin/wagtail_review/create_review/')
         self.assertEqual(response.status_code, 200)
+
+    def test_user_autocomplete(self):
+        response = self.client.get('/admin/wagtail_review/autocomplete_users/?q=homer')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data['results'], [
+            {'id': 2, 'full_name': 'Homer Simpson', 'username': 'homer'}
+        ])
+
+        response = self.client.get('/admin/wagtail_review/autocomplete_users/?q=pants')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data['results'], [
+            {'id': 1, 'full_name': 'Spongebob Squarepants', 'username': 'spongebob'}
+        ])

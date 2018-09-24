@@ -7,4 +7,5 @@ app_name = 'wagtail_review'
 
 urlpatterns = [
     url(r'^create_review/$', views.create_review, name='create_review'),
+    url(r'^autocomplete_users/$', views.autocomplete_users, name='autocomplete_users'),
 ]
