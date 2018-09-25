@@ -36,6 +36,11 @@ $(function() {
         }
 
         var autocompleteField = $('#id_create_review-reviewer_autocomplete', modal.body);
+
+        var autocompleteErrorMessage = $('<p class="error-message"><span>Please enter an email address, or select a user from the dropdown</span></p>')
+        autocompleteField.closest('.field-content').append(autocompleteErrorMessage)
+        autocompleteErrorMessage.hide();
+
         var autocompleteUrl = autocompleteField.data('autocomplete-url');
         autocompleteField.autocomplete({
             'minLength': 2,
@@ -58,6 +63,26 @@ $(function() {
             'select': function(event, ui) {
                 addReviewer(ui.item.value, null, ui.item.label);
                 autocompleteField.val('');
+                autocompleteErrorMessage.hide();
+                return false;
+            }
+        });
+
+        function addReviewerIfEmail() {
+            /* add the value of autocompleteField to the reviewer list if it looks like an email address */
+            var val = autocompleteField.val()
+            if (/^[^\@]+\@[^\@]+\.[^\@]+$/.test(val)) {
+                addReviewer(null, val, val);
+                autocompleteField.val('');
+                autocompleteErrorMessage.hide();
+            } else {
+                autocompleteErrorMessage.show();
+            }
+        }
+        $('#id_create_review-reviewer_autocomplete_add', modal.body).click(addReviewerIfEmail);
+        autocompleteField.keypress(function(e) {
+            if (e.keyCode == 13) {
+                addReviewerIfEmail();
                 return false;
             }
         });
