@@ -13,8 +13,27 @@ User = get_user_model()
 def create_review(request):
     ReviewForm = get_review_form_class()
 
-    form = ReviewForm(prefix='create_review')
-    reviewer_formset = ReviewerFormSet(prefix='create_review_reviewers')
+    if request.method == 'GET':
+        form = ReviewForm(prefix='create_review')
+        reviewer_formset = ReviewerFormSet(prefix='create_review_reviewers')
+    else:
+        form = ReviewForm(request.POST, prefix='create_review')
+        reviewer_formset = ReviewerFormSet(request.POST, prefix='create_review_reviewers')
+
+        form_is_valid = form.is_valid()
+        reviewer_formset_is_valid = reviewer_formset.is_valid()
+
+        if not (form_is_valid and reviewer_formset_is_valid):
+            return render_modal_workflow(
+                request, 'wagtail_review/create_review.html', None, {
+                    'form': form,
+                    'reviewer_formset': reviewer_formset,
+                }, json_data={'step': 'form'}
+            )
+        else:
+            return render_modal_workflow(
+                request, None, None, {}, json_data={'step': 'done'}
+            )
 
     return render_modal_workflow(
         request, 'wagtail_review/create_review.html', None, {

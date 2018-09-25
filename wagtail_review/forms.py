@@ -1,8 +1,9 @@
 from django import forms
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.utils.module_loading import import_string
+from django.utils.translation import ugettext
 
 import swapper
 
@@ -34,6 +35,17 @@ class BaseReviewerFormSet(forms.BaseFormSet):
     def add_fields(self, form, index):
         super().add_fields(form, index)
         form.fields[DELETION_FIELD_NAME].widget = forms.HiddenInput()
+
+    def clean(self):
+        # Confirm that at least one reviewer has been specified.
+        # Do this as a custom validation step (rather than passing min_num=1 /
+        # validate_min=True to inlineformset_factory) so that we can have a
+        # custom error message.
+        if (self.total_form_count() - len(self.deleted_forms) < 1):
+            raise ValidationError(
+                ugettext("Please select one or more reviewers."),
+                code='too_few_forms'
+            )
 
 
 ReviewerFormSet = forms.inlineformset_factory(

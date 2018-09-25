@@ -37,8 +37,8 @@ $(function() {
 
         var autocompleteField = $('#id_create_review-reviewer_autocomplete', modal.body);
 
-        var autocompleteErrorMessage = $('<p class="error-message"><span>Please enter an email address, or select a user from the dropdown</span></p>')
-        autocompleteField.closest('.field-content').append(autocompleteErrorMessage)
+        var autocompleteErrorMessage = $('<p class="error-message"><span>Please enter an email address, or select a user from the dropdown</span></p>');
+        autocompleteField.closest('.field-content').append(autocompleteErrorMessage);
         autocompleteErrorMessage.hide();
 
         var autocompleteUrl = autocompleteField.data('autocomplete-url');
@@ -86,6 +86,12 @@ $(function() {
                 return false;
             }
         });
+
+        $('form', modal.body).on('submit', function() {
+            modal.postForm(this.action, $(this).serialize());
+            return false;
+        });
+
     }
 
     /* behaviour for the submit-for-review menu item */
@@ -94,7 +100,10 @@ $(function() {
         ModalWorkflow({
             url: createReviewUrl,
             onload: {
-                'form': createReviewOnload
+                'form': createReviewOnload,
+                'done': function(modal, jsonData) {
+                    console.log(jsonData);
+                }
             }
         });
         return false;

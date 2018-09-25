@@ -28,6 +28,8 @@ class TestAdminViews(TestCase):
     def test_create_review(self):
         response = self.client.get('/admin/wagtail_review/create_review/')
         self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.content)
+        self.assertEqual(response_json['step'], 'form')
 
     def test_user_autocomplete(self):
         response = self.client.get('/admin/wagtail_review/autocomplete_users/?q=homer')
@@ -43,3 +45,47 @@ class TestAdminViews(TestCase):
         self.assertEqual(data['results'], [
             {'id': 1, 'full_name': 'Spongebob Squarepants', 'username': 'spongebob'}
         ])
+
+    def test_validate_reviewers_required(self):
+        # reject a completely empty formset
+        response = self.client.post('/admin/wagtail_review/create_review/', {
+            'create_review_reviewers-TOTAL_FORMS': 0,
+            'create_review_reviewers-INITIAL_FORMS': 0,
+            'create_review_reviewers-MIN_NUM_FORMS': 0,
+            'create_review_reviewers-MAX_NUM_FORMS': 1000,
+        })
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.content)
+        self.assertEqual(response_json['step'], 'form')
+        self.assertFormsetError(response, 'reviewer_formset', None, None, "Please select one or more reviewers.")
+
+        # reject a formset with only deleted items
+        response = self.client.post('/admin/wagtail_review/create_review/', {
+            'create_review_reviewers-TOTAL_FORMS': 1,
+            'create_review_reviewers-INITIAL_FORMS': 0,
+            'create_review_reviewers-MIN_NUM_FORMS': 0,
+            'create_review_reviewers-MAX_NUM_FORMS': 1000,
+
+            'create_review_reviewers-0-user': '',
+            'create_review_reviewers-0-email': 'someone@example.com',
+            'create_review_reviewers-0-DELETE': '1',
+        })
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.content)
+        self.assertEqual(response_json['step'], 'form')
+        self.assertFormsetError(response, 'reviewer_formset', None, None, "Please select one or more reviewers.")
+
+    def test_validate_ok(self):
+        response = self.client.post('/admin/wagtail_review/create_review/', {
+            'create_review_reviewers-TOTAL_FORMS': 1,
+            'create_review_reviewers-INITIAL_FORMS': 0,
+            'create_review_reviewers-MIN_NUM_FORMS': 0,
+            'create_review_reviewers-MAX_NUM_FORMS': 1000,
+
+            'create_review_reviewers-0-user': '',
+            'create_review_reviewers-0-email': 'someone@example.com',
+            'create_review_reviewers-0-DELETE': '',
+        })
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.content)
+        self.assertEqual(response_json['step'], 'done')
