@@ -3,3 +3,7 @@
     margin-right: 8px;
     vertical-align: middle;
 }
+
+#id_create_review-reviewer_form_container li {
+    list-style-type: disc;
+}

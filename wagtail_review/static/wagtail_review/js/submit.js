@@ -1,37 +1,75 @@
 $(function() {
+
+    function createReviewOnload(modal, jsonData) {
+        /* onload behaviours for the create review form */
+
+        var reviewerList = $('#id_create_review-reviewer_form_container');
+        var totalFormsInput = $('#id_create_review_reviewers-TOTAL_FORMS');
+        var formCount = parseInt(totalFormsInput.val(), 10);
+        var emptyFormTemplate = document.getElementById('id_create_review_reviewers-EMPTY_FORM_TEMPLATE');
+        if (emptyFormTemplate.innerText) {
+            emptyFormTemplate = emptyFormTemplate.innerText;
+        } else if (emptyFormTemplate.textContent) {
+            emptyFormTemplate = emptyFormTemplate.textContent;
+        }
+
+        function initReviewerDeleteLink(li, formIndex) {
+            $('#id_create_review_reviewers-' + formIndex + '-delete_link').click(function() {
+                $('#id_create_review_reviewers-' + formIndex + '-DELETE').val('1');
+                li.fadeOut('fast');
+                return false;
+            });
+        }
+
+        function addReviewer(id, email, label) {
+            var newFormHtml = $(emptyFormTemplate
+                .replace(/__prefix__/g, formCount)
+                .replace(/<-(-*)\/script>/g, '<$1/script>'));
+            reviewerList.append(newFormHtml);
+            $('#id_create_review_reviewers-' + formCount + '-user').val(id);
+            $('#id_create_review_reviewers-' + formCount + '-email').val(email);
+            $('#id_create_review_reviewers-' + formCount + '-label').text(label);
+            initReviewerDeleteLink(newFormHtml, formCount);
+
+            formCount++;
+            totalFormsInput.val(formCount);
+        }
+
+        var autocompleteField = $('#id_create_review-reviewer_autocomplete', modal.body);
+        var autocompleteUrl = autocompleteField.data('autocomplete-url');
+        autocompleteField.autocomplete({
+            'minLength': 2,
+            'source': function(request, response) {
+                $.getJSON(autocompleteUrl, {'q': request.term}, function(jsonResponse) {
+                    var results = [];
+                    for (var i = 0; i < jsonResponse.results.length; i++) {
+                        results[i] = {
+                            'value': jsonResponse.results[i]['id'],
+                            'label': jsonResponse.results[i]['full_name']
+                        };
+                    }
+                    response(results);
+                });
+            },
+            'focus': function( event, ui ) {
+                /* prevent populating the input box with the ID */
+                return false;
+            },
+            'select': function(event, ui) {
+                addReviewer(ui.item.value, null, ui.item.label);
+                autocompleteField.val('');
+                return false;
+            }
+        });
+    }
+
+    /* behaviour for the submit-for-review menu item */
     $('input[name="action-submit-for-review"],button[name="action-submit-for-review"]').click(function() {
         var createReviewUrl = $(this).data('url');
         ModalWorkflow({
             url: createReviewUrl,
             onload: {
-                'form': function(modal, jsonData) {
-                    var autocompleteField = $('#id_create_review-reviewer_autocomplete', modal.body);
-                    var autocompleteUrl = autocompleteField.data('autocomplete-url');
-                    autocompleteField.autocomplete({
-                        'minLength': 2,
-                        'source': function(request, response) {
-                            $.getJSON(autocompleteUrl, {'q': request.term}, function(jsonResponse) {
-                                var results = [];
-                                for (var i = 0; i < jsonResponse.results.length; i++) {
-                                    results[i] = {
-                                        'value': jsonResponse.results[i]['id'],
-                                        'label': jsonResponse.results[i]['full_name']
-                                    };
-                                }
-                                response(results);
-                            });
-                        },
-                        'focus': function( event, ui ) {
-                            /* prevent populating the input box with the ID */
-                            return false;
-                        },
-                        'select': function(event, ui) {
-                            console.log('selected user ID: ' + ui.item.value);
-                            autocompleteField.val('');
-                            return false;
-                        }
-                    });
-                }
+                'form': createReviewOnload
             }
         });
         return false;

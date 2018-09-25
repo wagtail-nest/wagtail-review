@@ -4,7 +4,7 @@ from django.http import JsonResponse
 
 from wagtail.admin.modal_workflow import render_modal_workflow
 
-from wagtail_review.forms import get_review_form_class
+from wagtail_review.forms import get_review_form_class, ReviewerFormSet
 
 
 User = get_user_model()
@@ -14,10 +14,12 @@ def create_review(request):
     ReviewForm = get_review_form_class()
 
     form = ReviewForm(prefix='create_review')
+    reviewer_formset = ReviewerFormSet(prefix='create_review_reviewers')
 
     return render_modal_workflow(
         request, 'wagtail_review/create_review.html', None, {
-            'form': form
+            'form': form,
+            'reviewer_formset': reviewer_formset,
         }, json_data={'step': 'form'}
     )
 

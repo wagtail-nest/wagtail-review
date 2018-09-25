@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n wagtailadmin_tags %}
 {% trans "Submit for review" as title_str %}
 {% include "wagtailadmin/shared/header.html" with title=title_str icon='doc-empty-inverse' %}
 
@@ -22,8 +22,20 @@
                             <button type="button" class="button text-replace icon icon-plus" class="reviewer-add">Add reviewer</button>
                         </div>
                         <p class="help">Enter a user name or email address</p>
+
+                        {{ reviewer_formset.management_form }}
+                        <ul id="id_create_review-reviewer_form_container">
+                        </ul>
                     </div>
                 </div>
+                <script type="text/django-form-template" id="id_{{ reviewer_formset.prefix }}-EMPTY_FORM_TEMPLATE">
+                    {% escapescript %}
+                        <li>
+                            <span id="id_create_review_reviewers-__prefix__-label"></span> <a href="#" id="id_create_review_reviewers-__prefix__-delete_link">[x]<a/>
+                            {{ reviewer_formset.empty_form }}
+                        </li>
+                    {% endescapescript %}
+                </script>
             </li>
 
             <li><input type="submit" value="{% trans 'Start review' %}" class="button" /></li>
