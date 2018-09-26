@@ -33,3 +33,11 @@ def remove_submit_to_moderator_option(menu_items, request, context):
     for (i, menu_item) in enumerate(menu_items):
         if menu_item.name == 'action-submit':
             menu_items[i] = SubmitForReviewMenuItem()
+
+
+def handle_submit_for_review(request, page):
+    if 'action-submit-for-review' in request.POST:
+        raise Exception("TODO: handle submit-for-review action")
+
+hooks.register('after_create_page', handle_submit_for_review)
+hooks.register('after_edit_page', handle_submit_for_review)

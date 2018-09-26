@@ -70,7 +70,7 @@ $(function() {
 
         function addReviewerIfEmail() {
             /* add the value of autocompleteField to the reviewer list if it looks like an email address */
-            var val = autocompleteField.val()
+            var val = autocompleteField.val();
             if (/^[^\@]+\@[^\@]+\.[^\@]+$/.test(val)) {
                 addReviewer(null, val, val);
                 autocompleteField.val('');
@@ -94,6 +94,22 @@ $(function() {
 
     }
 
+    function onValidateOK(modal, jsonData) {
+        /* transfer create-review form contents to the real page-edit form */
+        var formFields = $('form', modal.body).serializeArray();
+        var editForm = $('form#page-edit-form');
+        for (var i = 0; i < formFields.length; i++) {
+            var input = $('<input type="hidden">').attr({
+                'name': formFields[i].name, 'value': formFields[i].value
+            });
+            editForm.append(input);
+        }
+        /* Add a hidden field to substitute for clicking the 'submit for review' button,
+        so that we know this was a submit-for-review action when intercepting the form post */
+        editForm.append('<input type="hidden" name="action-submit-for-review" value="1">');
+        editForm.submit();
+    }
+
     /* behaviour for the submit-for-review menu item */
     $('input[name="action-submit-for-review"],button[name="action-submit-for-review"]').click(function() {
         var createReviewUrl = $(this).data('url');
@@ -101,9 +117,7 @@ $(function() {
             url: createReviewUrl,
             onload: {
                 'form': createReviewOnload,
-                'done': function(modal, jsonData) {
-                    console.log(jsonData);
-                }
+                'done': onValidateOK
             }
         });
         return false;
