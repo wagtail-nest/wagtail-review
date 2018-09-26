@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.test import TestCase
 
 from wagtail.core.models import Page
@@ -11,7 +12,7 @@ class TestReviewerModel(TestCase):
     def setUp(self):
         self.homepage = Page.objects.get(url_path='/home/').specific
         self.revision = self.homepage.save_revision()
-        self.review = Review.objects.create(page_revision=self.revision)
+        self.review = Review.objects.create(page_revision=self.revision, submitter=User.objects.first())
 
     def test_tokens_are_assigned(self):
         """Test that response_token and view_token are populated on save"""

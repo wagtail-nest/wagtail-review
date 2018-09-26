@@ -1,10 +1,18 @@
 from django.conf.urls import include, url
+from django.contrib import messages as django_messages
+from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 
+import swapper
+
+from wagtail.admin import messages
 from wagtail.admin.action_menu import ActionMenuItem
 from wagtail.core import hooks
 
 from wagtail_review import admin_urls
+from wagtail_review.forms import get_review_form_class, ReviewerFormSet
+
+Review = swapper.load_model('wagtail_review', 'Review')
 
 
 @hooks.register('register_admin_urls')
@@ -37,7 +45,36 @@ def remove_submit_to_moderator_option(menu_items, request, context):
 
 def handle_submit_for_review(request, page):
     if 'action-submit-for-review' in request.POST:
-        raise Exception("TODO: handle submit-for-review action")
+        ReviewForm = get_review_form_class()
+
+        review = Review(page_revision=page.get_latest_revision(), submitter=request.user)
+        form = ReviewForm(request.POST, instance=review, prefix='create_review')
+        reviewer_formset = ReviewerFormSet(request.POST, instance=review, prefix='create_review_reviewers')
+
+        # forms should already have been validated at the point of submission, so treat validation failures
+        # at this point as a hard error
+        if not form.is_valid():
+            raise Exception("Review form failed validation")
+        if not reviewer_formset.is_valid():
+            raise Exception("Reviewer formset failed validation")
+
+        form.save()
+        reviewer_formset.save()
+
+        # clear original confirmation message as set by the create/edit view,
+        # so that we can replace it with our own
+        list(django_messages.get_messages(request))
+
+        message = _(
+            "Page '{0}' has been submitted for review."
+        ).format(
+            page.get_admin_display_title()
+        )
+
+        messages.success(request, message)
+
+        # redirect back to the explorer
+        return redirect('wagtailadmin_explore', page.get_parent().id)
 
 hooks.register('after_create_page', handle_submit_for_review)
 hooks.register('after_edit_page', handle_submit_for_review)

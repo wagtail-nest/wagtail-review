@@ -23,6 +23,7 @@ class BaseReview(models.Model):
     """
     page_revision = models.ForeignKey('wagtailcore.PageRevision', related_name='+', on_delete=models.CASCADE, editable=False)
     status = models.CharField(max_length=30, default='open', choices=REVIEW_STATUS_CHOICES, editable=False)
+    submitter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+', editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -56,3 +57,5 @@ class Reviewer(models.Model):
             self.response_token = generate_token()
         if not self.view_token:
             self.view_token = generate_token()
+
+        super().save(**kwargs)

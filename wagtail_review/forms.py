@@ -31,7 +31,7 @@ def get_review_form_class():
         )
 
 
-class BaseReviewerFormSet(forms.BaseFormSet):
+class BaseReviewerFormSet(forms.BaseInlineFormSet):
     def add_fields(self, form, index):
         super().add_fields(form, index)
         form.fields[DELETION_FIELD_NAME].widget = forms.HiddenInput()
