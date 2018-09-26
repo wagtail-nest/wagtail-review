@@ -3,7 +3,7 @@
 {% include "wagtailadmin/shared/header.html" with title=title_str icon='doc-empty-inverse' %}
 
 <div class="nice-padding">
-    <form action="{% url 'wagtail_review:create_review' %}" method="POST">
+    <form action="{% url 'wagtail_review_admin:create_review' %}" method="POST">
         {% csrf_token %}
         <ul class="fields">
             {% for field in form %}
@@ -22,7 +22,7 @@
                             <p class="error-message"><span>{{ err }}</span></p>
                         {% endfor %}
                         <div class="input">
-                            <input type="text" id="id_create_review-reviewer_autocomplete" class="reviewer-autocomplete" data-autocomplete-url="{% url 'wagtail_review:autocomplete_users' %}">
+                            <input type="text" id="id_create_review-reviewer_autocomplete" class="reviewer-autocomplete" data-autocomplete-url="{% url 'wagtail_review_admin:autocomplete_users' %}">
                             <button type="button" class="button text-replace icon icon-plus" id="id_create_review-reviewer_autocomplete_add" class="reviewer-add">Add reviewer</button>
                         </div>
                         <p class="help">Enter a user name or email address</p>

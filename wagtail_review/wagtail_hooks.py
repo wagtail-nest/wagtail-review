@@ -18,7 +18,7 @@ Review = swapper.load_model('wagtail_review', 'Review')
 @hooks.register('register_admin_urls')
 def register_admin_urls():
     return [
-        url(r'^wagtail_review/', include(admin_urls, namespace='wagtail_review')),
+        url(r'^wagtail_review/', include(admin_urls, namespace='wagtail_review_admin')),
     ]
 
 
