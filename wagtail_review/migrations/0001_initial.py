@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
                 ('email', models.EmailField(blank=True, max_length=254)),
                 ('response_token', models.CharField(editable=False, help_text='Secret token this user must supply to be allowed to respond to the review', max_length=32)),
                 ('view_token', models.CharField(editable=False, help_text='Secret token this user must supply to be allowed to view the page revision being reviewed', max_length=32)),
-                ('review', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.WAGTAILREVIEW_REVIEW_MODEL)),
+                ('review', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.WAGTAILREVIEW_REVIEW_MODEL, related_name='reviewers')),
                 ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to=settings.AUTH_USER_MODEL)),
             ],
         ),

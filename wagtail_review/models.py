@@ -40,7 +40,7 @@ def generate_token():
 
 
 class Reviewer(models.Model):
-    review = models.ForeignKey(swapper.get_model_name('wagtail_review', 'Review'))
+    review = models.ForeignKey(swapper.get_model_name('wagtail_review', 'Review'), related_name='reviewers')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE, related_name='+')
     email = models.EmailField(blank=True)
     response_token = models.CharField(

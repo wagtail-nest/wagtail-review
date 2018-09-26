@@ -5,6 +5,8 @@ from django.test import TestCase
 
 from wagtail.core.models import Page
 
+from wagtail_review.models import Review
+
 
 class TestAdminViews(TestCase):
     fixtures = ['test.json']
@@ -89,3 +91,51 @@ class TestAdminViews(TestCase):
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.content)
         self.assertEqual(response_json['step'], 'done')
+
+    def test_post_edit_form(self):
+        response = self.client.post('/admin/pages/2/edit/', {
+            'title': "Home submitted",
+            'slug': 'title',
+
+            'create_review_reviewers-TOTAL_FORMS': 1,
+            'create_review_reviewers-INITIAL_FORMS': 0,
+            'create_review_reviewers-MIN_NUM_FORMS': 0,
+            'create_review_reviewers-MAX_NUM_FORMS': 1000,
+
+            'create_review_reviewers-0-user': '',
+            'create_review_reviewers-0-email': 'someone@example.com',
+            'create_review_reviewers-0-DELETE': '',
+
+            'action-submit-for-review': '1',
+        })
+
+        self.assertRedirects(response, '/admin/pages/1/')
+
+        revision = self.homepage.get_latest_revision()
+        review = Review.objects.get(page_revision=revision)
+        self.assertEqual(review.reviewers.count(), 1)
+        self.assertEqual(review.reviewers.first().email, 'someone@example.com')
+
+    def test_post_create_form(self):
+        response = self.client.post('/admin/pages/add/tests/simplepage/2/', {
+            'title': "Subpage submitted",
+            'slug': 'subpage-submitted',
+
+            'create_review_reviewers-TOTAL_FORMS': 1,
+            'create_review_reviewers-INITIAL_FORMS': 0,
+            'create_review_reviewers-MIN_NUM_FORMS': 0,
+            'create_review_reviewers-MAX_NUM_FORMS': 1000,
+
+            'create_review_reviewers-0-user': '',
+            'create_review_reviewers-0-email': 'someone@example.com',
+            'create_review_reviewers-0-DELETE': '',
+
+            'action-submit-for-review': '1',
+        })
+
+        self.assertRedirects(response, '/admin/pages/2/')
+
+        revision = Page.objects.get(slug='subpage-submitted').get_latest_revision()
+        review = Review.objects.get(page_revision=revision)
+        self.assertEqual(review.reviewers.count(), 1)
+        self.assertEqual(review.reviewers.first().email, 'someone@example.com')
