@@ -2,6 +2,24 @@
 
 An extension for Wagtail allowing pages to be submitted for review (including to non-Wagtail users) prior to publication
 
+## Installation
+
+From the root of the checked-out repository:
+
+    pip install -e .
+
+Add to your project's `INSTALLED_APPS`:
+
+    'wagtail_review',
+
+Add to your project's URL config:
+
+    from wagtail_review import urls as wagtailreview_urls
+
+    # Somewhere above the include(wagtail_urls) line:
+        url(r'^review/', include(wagtailreview_urls)),
+
+
 ## Customisation
 
 To define a custom review model:
