@@ -20,7 +20,22 @@ Add to your project's URL config:
         url(r'^review/', include(wagtailreview_urls)),
 
 
-## Customisation
+## Custom notification emails
+
+To customise notification email content, override the templates `wagtail_review/email/request_review_subject.txt` (for the subject line) and `wagtail_review/email/request_review.txt` (for the email content). This needs to be done in an app which appears above `wagtail_review` in the `INSTALLED_APPS` list.
+
+The following context variables are available within the templates:
+
+ * `email`: the reviewer's email address
+ * `user`: the reviewer's user object (`None` if the reviewer was specified as an email address only, rather than a user account)
+ * `review`: The review object (probably only useful when a custom review model is in use - see below)
+ * `page`: Page object corresponding to the page revision to be reviewed
+ * `submitter`: user object of the Wagtail user submitting the page for review
+ * `respond_url`: Personalised URL (including domain) for this reviewer intended to be kept private, allowing them to respond to the review
+ * `view_url`: Personalised URL (including domain) for this reviewer intended to be shared with colleagues, allowing them to view the page under review
+
+
+## Custom review models
 
 To define a custom review model:
 

@@ -1,0 +1,11 @@
+{% load i18n %}
+
+{% if user %}{% blocktrans with full_name=user.get_full_name|safe %}Dear {{ full_name }},{% endblocktrans %}{% endif %}
+{% blocktrans with full_name=submitter.get_full_name|safe page_title=page.title|safe %}
+{{ full_name }} has requested a review from you on the page "{{ page_title }}". To review the page and provide your feedback, please visit this link:{% endblocktrans %}
+
+{{ respond_url }}
+
+{% blocktrans %}Please do not share this link - it is personal to you, and anyone else with the link will be able to respond to the review under your name. If you wish to share the page with colleagues, please use the following link, which will allow them to view the page and any existing review comments, but not respond to the review themselves:{% endblocktrans %}
+
+{{ view_url }}

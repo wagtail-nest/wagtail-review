@@ -89,3 +89,4 @@ PASSWORD_HASHERS = (
 )
 
 WAGTAIL_SITE_NAME = 'wagtail-review test'
+BASE_URL = 'http://test.local'

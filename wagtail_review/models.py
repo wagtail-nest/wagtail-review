@@ -2,10 +2,17 @@ import random
 import string
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
 import swapper
+
+from wagtail.admin.utils import send_mail
+
 
 # make the setting name WAGTAILREVIEW_REVIEW_MODEL rather than WAGTAIL_REVIEW_REVIEW_MODEL
 swapper.set_app_prefix('wagtail_review', 'wagtailreview')
@@ -25,6 +32,14 @@ class BaseReview(models.Model):
     status = models.CharField(max_length=30, default='open', choices=REVIEW_STATUS_CHOICES, editable=False)
     submitter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+', editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def send_request_emails(self):
+        for reviewer in self.reviewers.all():
+            reviewer.send_request_email()
+
+    @cached_property
+    def revision_as_page(self):
+        return self.page_revision.as_page_object()
 
     class Meta:
         abstract = True
@@ -52,6 +67,13 @@ class Reviewer(models.Model):
         help_text="Secret token this user must supply to be allowed to view the page revision being reviewed"
     )
 
+    def clean(self):
+        if self.user is None and not self.email:
+            raise ValidationError("A reviewer must have either an email address or a user account")
+
+    def get_email_address(self):
+        return self.email or self.user.email
+
     def save(self, **kwargs):
         if not self.response_token:
             self.response_token = generate_token()
@@ -59,3 +81,33 @@ class Reviewer(models.Model):
             self.view_token = generate_token()
 
         super().save(**kwargs)
+
+    def get_respond_url(self, absolute=False):
+        url = reverse('wagtail_review:respond', args=[self.id, self.response_token])
+        if absolute:
+            url = settings.BASE_URL + url
+        return url
+
+    def get_view_url(self, absolute=False):
+        url = reverse('wagtail_review:view', args=[self.id, self.view_token])
+        if absolute:
+            url = settings.BASE_URL + url
+        return url
+
+    def send_request_email(self):
+        email_address = self.get_email_address()
+
+        context = {
+            'email': email_address,
+            'user': self.user,
+            'review': self.review,
+            'page': self.review.revision_as_page,
+            'submitter': self.review.submitter,
+            'respond_url': self.get_respond_url(absolute=True),
+            'view_url': self.get_view_url(absolute=True),
+        }
+
+        email_subject = render_to_string('wagtail_review/email/request_review_subject.txt', context).strip()
+        email_content = render_to_string('wagtail_review/email/request_review.txt', context).strip()
+
+        send_mail(email_subject, email_content, [email_address])

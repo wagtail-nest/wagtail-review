@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth.models import User
+from django.core import mail
 from django.test import TestCase
 
 from wagtail.core.models import Page
@@ -97,7 +98,7 @@ class TestAdminViews(TestCase):
             'title': "Home submitted",
             'slug': 'title',
 
-            'create_review_reviewers-TOTAL_FORMS': 1,
+            'create_review_reviewers-TOTAL_FORMS': 2,
             'create_review_reviewers-INITIAL_FORMS': 0,
             'create_review_reviewers-MIN_NUM_FORMS': 0,
             'create_review_reviewers-MAX_NUM_FORMS': 1000,
@@ -105,6 +106,10 @@ class TestAdminViews(TestCase):
             'create_review_reviewers-0-user': '',
             'create_review_reviewers-0-email': 'someone@example.com',
             'create_review_reviewers-0-DELETE': '',
+
+            'create_review_reviewers-1-user': User.objects.get(username='spongebob').pk,
+            'create_review_reviewers-1-email': '',
+            'create_review_reviewers-1-DELETE': '',
 
             'action-submit-for-review': '1',
         })
@@ -113,15 +118,21 @@ class TestAdminViews(TestCase):
 
         revision = self.homepage.get_latest_revision()
         review = Review.objects.get(page_revision=revision)
-        self.assertEqual(review.reviewers.count(), 1)
-        self.assertEqual(review.reviewers.first().email, 'someone@example.com')
+        self.assertEqual(review.reviewers.count(), 2)
+
+        reviewer_emails = set(reviewer.get_email_address() for reviewer in review.reviewers.all())
+        self.assertEqual(reviewer_emails, {'someone@example.com', 'spongebob@example.com'})
+
+        self.assertEqual(len(mail.outbox), 2)
+        email_recipients = set(email.to[0] for email in mail.outbox)
+        self.assertEqual(email_recipients, {'someone@example.com', 'spongebob@example.com'})
 
     def test_post_create_form(self):
         response = self.client.post('/admin/pages/add/tests/simplepage/2/', {
             'title': "Subpage submitted",
             'slug': 'subpage-submitted',
 
-            'create_review_reviewers-TOTAL_FORMS': 1,
+            'create_review_reviewers-TOTAL_FORMS': 2,
             'create_review_reviewers-INITIAL_FORMS': 0,
             'create_review_reviewers-MIN_NUM_FORMS': 0,
             'create_review_reviewers-MAX_NUM_FORMS': 1000,
@@ -130,6 +141,10 @@ class TestAdminViews(TestCase):
             'create_review_reviewers-0-email': 'someone@example.com',
             'create_review_reviewers-0-DELETE': '',
 
+            'create_review_reviewers-1-user': User.objects.get(username='spongebob').pk,
+            'create_review_reviewers-1-email': '',
+            'create_review_reviewers-1-DELETE': '',
+
             'action-submit-for-review': '1',
         })
 
@@ -137,5 +152,11 @@ class TestAdminViews(TestCase):
 
         revision = Page.objects.get(slug='subpage-submitted').get_latest_revision()
         review = Review.objects.get(page_revision=revision)
-        self.assertEqual(review.reviewers.count(), 1)
-        self.assertEqual(review.reviewers.first().email, 'someone@example.com')
+        self.assertEqual(review.reviewers.count(), 2)
+
+        reviewer_emails = set(reviewer.get_email_address() for reviewer in review.reviewers.all())
+        self.assertEqual(reviewer_emails, {'someone@example.com', 'spongebob@example.com'})
+
+        self.assertEqual(len(mail.outbox), 2)
+        email_recipients = set(email.to[0] for email in mail.outbox)
+        self.assertEqual(email_recipients, {'someone@example.com', 'spongebob@example.com'})

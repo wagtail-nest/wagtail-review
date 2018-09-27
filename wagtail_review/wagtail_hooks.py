@@ -61,6 +61,8 @@ def handle_submit_for_review(request, page):
         form.save()
         reviewer_formset.save()
 
+        review.send_request_emails()
+
         # clear original confirmation message as set by the create/edit view,
         # so that we can replace it with our own
         list(django_messages.get_messages(request))
