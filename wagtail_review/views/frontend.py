@@ -10,7 +10,9 @@ def view(request, reviewer_id, token):
         raise PermissionDenied
 
     page = reviewer.review.page_revision.as_page_object()
-    return page.serve_preview(page.dummy_request(request), page.default_preview_mode)
+    dummy_request = page.dummy_request(request)
+    dummy_request.wagtailreview_mode = 'view'
+    return page.serve_preview(dummy_request, page.default_preview_mode)
 
 
 def respond(request, reviewer_id, token):
@@ -19,4 +21,6 @@ def respond(request, reviewer_id, token):
         raise PermissionDenied
 
     page = reviewer.review.page_revision.as_page_object()
-    return page.serve_preview(page.dummy_request(request), page.default_preview_mode)
+    dummy_request = page.dummy_request(request)
+    dummy_request.wagtailreview_mode = 'respond'
+    return page.serve_preview(dummy_request, page.default_preview_mode)

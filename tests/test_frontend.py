@@ -35,6 +35,8 @@ class TestFrontendViews(TestCase):
         response = self.client.get('/review/view/%d/%s/' % (self.reviewer.id, self.reviewer.view_token))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "<h1>Simple page submitted</h1>")
+        self.assertContains(response, "var app = new annotator.App();")
+        self.assertContains(response, "app.include(annotatorExt.viewerModeUi);")
 
     def test_response_token_must_match(self):
         response = self.client.get('/review/respond/%d/xxxxx/' % self.reviewer.id)
@@ -44,3 +46,11 @@ class TestFrontendViews(TestCase):
         response = self.client.get('/review/respond/%d/%s/' % (self.reviewer.id, self.reviewer.response_token))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "<h1>Simple page submitted</h1>")
+        self.assertContains(response, "var app = new annotator.App();")
+        self.assertContains(response, "app.include(annotator.ui.main);")
+
+    def test_live_page_has_no_annotator_js(self):
+        response = self.client.get('/simple-page/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "<h1>Simple page original</h1>")
+        self.assertNotContains(response, "var app = new annotator.App();")

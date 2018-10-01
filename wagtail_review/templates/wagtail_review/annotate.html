@@ -1,0 +1,16 @@
+{% load static %}
+
+{% if mode %}
+    <script src="{% static 'wagtail_review/js/annotator-2.0.0a3.min.js' %}"></script>
+    <script src="{% static 'wagtail_review/js/annotator-extensions.js' %}"></script>
+    <script>
+        var app = new annotator.App();
+        {% if mode == 'respond' %}
+            app.include(annotator.ui.main);
+        {% else %}
+            app.include(annotatorExt.viewerModeUi);
+        {% endif %}
+        app.include(annotator.storage.http);
+        app.start();
+    </script>
+{% endif %}
