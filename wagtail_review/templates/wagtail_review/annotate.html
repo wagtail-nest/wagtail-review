@@ -3,14 +3,35 @@
 {% if mode %}
     <script src="{% static 'wagtail_review/js/annotator-2.0.0a3.min.js' %}"></script>
     <script src="{% static 'wagtail_review/js/annotator-extensions.js' %}"></script>
+    <form id="wagtailreview-csrf">{% csrf_token %}</form>
     <script>
+        var annotatorCredentials = {
+            mode: '{{ mode }}',
+            reviewer: '{{ reviewer.id }}',
+            token: '{{ token }}'
+        }
+
         var app = new annotator.App();
         {% if mode == 'respond' %}
             app.include(annotator.ui.main);
+            app.include(annotatorExt.setCredentials, {'credentials': annotatorCredentials});
         {% else %}
             app.include(annotatorExt.viewerModeUi);
         {% endif %}
-        app.include(annotator.storage.http);
-        app.start();
+        app.include(annotator.storage.http, {
+            'prefix': "{% url 'wagtail_review:annotations_api_root' %}",
+            'urls': {
+                create: 'annotations/',
+                update: 'annotations/{id}/',
+                destroy: 'annotations/{id}/',
+                search: 'search/'
+            },
+            'headers': {
+                'X-CSRFToken': document.getElementById('wagtailreview-csrf').csrfmiddlewaretoken.value
+            }
+        });
+        app.start().then(function () {
+            app.annotations.load(annotatorCredentials);
+        });
     </script>
 {% endif %}

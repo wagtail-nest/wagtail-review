@@ -12,6 +12,7 @@ def view(request, reviewer_id, token):
     page = reviewer.review.page_revision.as_page_object()
     dummy_request = page.dummy_request(request)
     dummy_request.wagtailreview_mode = 'view'
+    dummy_request.wagtailreview_reviewer = reviewer
     return page.serve_preview(dummy_request, page.default_preview_mode)
 
 
@@ -23,4 +24,5 @@ def respond(request, reviewer_id, token):
     page = reviewer.review.page_revision.as_page_object()
     dummy_request = page.dummy_request(request)
     dummy_request.wagtailreview_mode = 'respond'
+    dummy_request.wagtailreview_reviewer = reviewer
     return page.serve_preview(dummy_request, page.default_preview_mode)

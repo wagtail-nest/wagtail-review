@@ -1,5 +1,5 @@
 var annotatorExt = {
-    'viewerModeUi': function () {
+    'viewerModeUi': function() {
         /* Read-only view of annotations. Taken from https://github.com/openannotation/annotator/issues/580#issuecomment-254772752 */
         var element = document.body; // Or whatever is your selector/element when you initialize the annotator
         var ui = {};
@@ -20,6 +20,15 @@ var annotatorExt = {
             },
             annotationsLoaded: function (anns) {
                 ui.highlighter.drawAll(anns);
+            }
+        };
+    },
+    'setCredentials': function(options) {
+        return {
+            beforeAnnotationCreated: function (ann) {
+                for (var key in options.credentials) {
+                    ann[key] = options.credentials[key];
+                }
             }
         };
     }
