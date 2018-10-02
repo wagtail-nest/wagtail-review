@@ -20,7 +20,7 @@ def wagtailreview(context):
         return {
             'mode': review_mode,
             'reviewer': reviewer,
-            'url': reviewer.view_token
+            'token': reviewer.view_token
         }
 
     else:

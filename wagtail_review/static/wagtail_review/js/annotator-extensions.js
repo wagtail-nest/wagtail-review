@@ -22,14 +22,5 @@ var annotatorExt = {
                 ui.highlighter.drawAll(anns);
             }
         };
-    },
-    'setCredentials': function(options) {
-        return {
-            beforeAnnotationCreated: function (ann) {
-                for (var key in options.credentials) {
-                    ann[key] = options.credentials[key];
-                }
-            }
-        };
     }
 };

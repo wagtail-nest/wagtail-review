@@ -41,6 +41,9 @@ class BaseReview(models.Model):
     def revision_as_page(self):
         return self.page_revision.as_page_object()
 
+    def get_annotations(self):
+        return Annotation.objects.filter(reviewer__review=self).prefetch_related('ranges')
+
     class Meta:
         abstract = True
 
@@ -73,6 +76,9 @@ class Reviewer(models.Model):
 
     def get_email_address(self):
         return self.email or self.user.email
+
+    def get_name(self):
+        return self.user.get_full_name() if self.user else self.email
 
     def save(self, **kwargs):
         if not self.response_token:
@@ -111,3 +117,42 @@ class Reviewer(models.Model):
         email_content = render_to_string('wagtail_review/email/request_review.txt', context).strip()
 
         send_mail(email_subject, email_content, [email_address])
+
+
+class Annotation(models.Model):
+    reviewer = models.ForeignKey(Reviewer, related_name='annotations', on_delete=models.CASCADE)
+    quote = models.TextField(blank=True)
+    text = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def as_json_data(self):
+        return {
+            'id': self.id,
+            'annotator_schema_version': 'v1.0',
+            'created': self.created_at.isoformat(),
+            'updated': self.updated_at.isoformat(),
+            'text': self.text,
+            'quote': self.quote,
+            'user': {
+                'id': self.reviewer.id,
+                'name': self.reviewer.get_name(),
+            },
+            'ranges': [r.as_json_data() for r in self.ranges.all()],
+        }
+
+
+class AnnotationRange(models.Model):
+    annotation = models.ForeignKey(Annotation, related_name='ranges', on_delete=models.CASCADE)
+    start = models.TextField()
+    start_offset = models.IntegerField()
+    end = models.TextField()
+    end_offset = models.IntegerField()
+
+    def as_json_data(self):
+        return {
+            'start': self.start,
+            'startOffset': self.start_offset,
+            'end': self.end,
+            'endOffset': self.end_offset,
+        }
