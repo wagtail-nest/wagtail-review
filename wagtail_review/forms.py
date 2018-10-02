@@ -7,7 +7,7 @@ from django.utils.translation import ugettext
 
 import swapper
 
-from wagtail_review.models import Reviewer
+from wagtail_review.models import Reviewer, Response
 
 Review = swapper.load_model('wagtail_review', 'Review')
 
@@ -58,3 +58,13 @@ ReviewerFormSet = forms.inlineformset_factory(
         'email': forms.HiddenInput,
     }
 )
+
+
+class ResponseForm(forms.ModelForm):
+    class Meta:
+        model = Response
+        fields = ['result', 'comment']
+        widgets = {
+            'result': forms.RadioSelect,
+            'comment': forms.Textarea(attrs={'rows': 6, 'cols': 50}),
+        }

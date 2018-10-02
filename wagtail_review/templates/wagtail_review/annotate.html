@@ -1,9 +1,40 @@
 {% load static %}
 
 {% if mode %}
+    <link rel="stylesheet" href="{% static 'wagtail_review/css/respond.css' %}">
     <script src="{% static 'wagtail_review/js/annotator-2.0.0a3.min.js' %}"></script>
     <script src="{% static 'wagtail_review/js/annotator-extensions.js' %}"></script>
-    <form id="wagtailreview-csrf">{% csrf_token %}</form>
+
+    {% if mode == 'respond' %}
+        <div class="wagtailreview-respond">
+            <a href="#" class="js-show-submit" id="wagtailreview-respond-button">Submit your review</a>
+            <form id="wagtailreview-respond-form" action="{{ reviewer.get_respond_url }}" method="POST">
+                {% csrf_token %}
+
+                <fieldset>
+                    <legend>Submit your review</legend>
+                    {% csrf_token %}
+
+                    {% for radio in response_form.result %}
+                        <div class="o-form__group o-form__group--radios">
+                            {{ radio }}
+                        </div>
+                    {% endfor %}
+
+                    <div class="o-form__group">
+                        <label for="id_comment" class="label-comment">Leave a comment</label>
+                        {{ response_form.comment }}
+                    </div>
+
+                    <div class="o-form__group">
+                        <input type="submit" value="Submit review" id="submit" />
+                    </div>
+
+                </fieldset>
+            </form>
+        </div>
+    {% endif %}
+
     <script>
         var app = new annotator.App();
         {% if mode == 'respond' %}
@@ -20,7 +51,9 @@
                 search: 'search/'
             },
             'headers': {
-                'X-CSRFToken': document.getElementById('wagtailreview-csrf').csrfmiddlewaretoken.value,
+                {% if mode == 'respond' %}
+                    'X-CSRFToken': document.getElementById('wagtailreview-respond-form').csrfmiddlewaretoken.value,
+                {% endif %}
                 'X-WagtailReview-mode': '{{ mode }}',
                 'X-WagtailReview-reviewer': '{{ reviewer.id }}',
                 'X-WagtailReview-token': '{{ token }}',
@@ -29,5 +62,27 @@
         app.start().then(function () {
             app.annotations.load();
         });
+
+        {% if mode == 'respond' %}
+            document.addEventListener('DOMContentLoaded', function() {
+                var form = document.getElementById('wagtailreview-respond-form');
+                form.style.display = 'none';
+                formShown = false;
+
+                var button = document.getElementById('wagtailreview-respond-button');
+                button.addEventListener('click', function() {
+                    if (formShown) {
+                        form.style.display = 'none';
+                        this.className = 'js-show-submit';
+                        formShown = false;
+                    } else {
+                        form.style.display = 'block';
+                        this.className = 'js-show-submit js-icon-up';
+                        formShown = true;
+                    }
+                    return false;
+                });
+            });
+       {% endif %}
     </script>
 {% endif %}

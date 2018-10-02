@@ -1,0 +1,99 @@
+.wagtailreview-respond {
+    font-family: arial, helvetica, sans-serif;
+    padding: 20px 10px;
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 9999;
+}
+.wagtailreview-respond a {
+    color: #fff;
+}
+
+.wagtailreview-respond form {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    background: #fff;
+    border: 1px solid rgba(27,31,35,0.15);
+    box-shadow: 0 3px 12px rgba(27,31,35,0.15);
+ }
+
+.wagtailreview-respond fieldset {
+    border-color: #eee;
+    margin-top: 20px;
+    padding: 5px 10px 20px 10px;
+}
+
+.wagtailreview-respond legend {
+    display: none;
+}
+
+.wagtailreview-respond input {
+    float: left;
+}
+
+.wagtailreview-respond label {
+    float: left;
+    font-weight: bold;
+}
+
+.wagtailreview-respond label span {
+    color: #999;
+    display: block;
+    font-weight: normal;
+}
+
+.wagtailreview-respond textarea {
+    border-color: #999;
+    border-radius: 4px;
+}
+
+.wagtailreview-respond .o-form__group--radios label {
+    padding-left: 10px;
+}
+
+.wagtailreview-respond .label-comment {
+    float: none;
+    display: block;
+    padding-bottom: 5px;
+    padding-top: 10px;
+}
+
+.wagtailreview-respond .o-form__group {
+    clear: left;
+    padding: 15px;
+}
+
+.wagtailreview-respond input[type="submit"], .wagtailreview-respond .js-show-submit {
+    background: #43b2b0;
+    border: 0;
+    border-radius: 2px;
+    color: #fff;
+    font-size: inherit;
+    padding: 12px 16px;
+}
+
+.wagtailreview-respond input[type="submit"]:hover {
+    cursor: pointer;
+    background: #5a898a;
+}
+
+.wagtailreview-respond .js-show-submit {
+    text-decoration: none;
+}
+
+.wagtailreview-respond .js-show-submit:hover {
+    background: #5a898a;
+}
+
+
+.wagtailreview-respond .js-show-submit:after {
+    content: " \25bc";
+    font-size: .75em;
+    padding-left: 5px;
+}
+
+.wagtailreview-respond .js-icon-up:after {
+    content: " \25b2";
+}

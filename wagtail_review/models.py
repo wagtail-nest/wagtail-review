@@ -156,3 +156,16 @@ class AnnotationRange(models.Model):
             'end': self.end,
             'endOffset': self.end_offset,
         }
+
+
+RESULT_CHOICES = (
+    ('approve', 'Approved'),
+    ('comment', 'Comment'),
+)
+
+
+class Response(models.Model):
+    reviewer = models.ForeignKey(Reviewer, related_name='responses', on_delete=models.CASCADE)
+    result = models.CharField(choices=RESULT_CHOICES, max_length=10, blank=False, default=None)
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)

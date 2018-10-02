@@ -1,5 +1,7 @@
 from django import template
 
+from wagtail_review.forms import ResponseForm
+
 register = template.Library()
 
 
@@ -13,7 +15,8 @@ def wagtailreview(context):
         return {
             'mode': review_mode,
             'reviewer': reviewer,
-            'token': reviewer.response_token
+            'token': reviewer.response_token,
+            'response_form': ResponseForm()
         }
 
     elif review_mode == 'view':
