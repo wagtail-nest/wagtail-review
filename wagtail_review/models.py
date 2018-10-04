@@ -12,6 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 import swapper
 
 from wagtail.admin.utils import send_mail
+from wagtail.core.models import UserPagePermissionsProxy
 
 
 # make the setting name WAGTAILREVIEW_REVIEW_MODEL rather than WAGTAIL_REVIEW_REVIEW_MODEL
@@ -49,6 +50,15 @@ class BaseReview(models.Model):
 
     def get_non_responding_reviewers(self):
         return self.reviewers.filter(responses__isnull=True)
+
+    @classmethod
+    def get_pages_with_reviews_for_user(cls, user):
+        """
+        Return a queryset of pages which have reviews, for which the user has edit permission
+        """
+        user_perms = UserPagePermissionsProxy(user)
+        reviewed_pages = cls.objects.values_list('page_revision__page_id', flat=True).distinct()
+        return user_perms.editable_pages().filter(pk__in=reviewed_pages)
 
     class Meta:
         abstract = True

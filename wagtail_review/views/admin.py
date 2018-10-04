@@ -89,32 +89,23 @@ def autocomplete_users(request):
     return JsonResponse({'results': result_data})
 
 
-class ReviewedPageQuerysetMixin:
-    """
-    Mixin for detail or list views that work with page objects taken from the queryset of
-    pages that have reviews, and that the current user has edit permission for
-    """
-    def get_queryset(self):
-        # return a queryset of pages the user has edit permission over which have any reviews
-        user_perms = UserPagePermissionsProxy(self.request.user)
-        reviewed_pages = Review.objects.values_list('page_revision__page_id', flat=True).distinct()
-        return user_perms.editable_pages().filter(pk__in=reviewed_pages)
-
-
-class DashboardView(ReviewedPageQuerysetMixin, generic.IndexView):
+class DashboardView(generic.IndexView):
     template_name = 'wagtail_review/admin/dashboard.html'
     page_title = _("Review dashboard")
     context_object_name = 'pages'
 
     def get_queryset(self):
-        return super().get_queryset().specific()
+        return Review.get_pages_with_reviews_for_user(self.request.user).specific()
 
 
-class AuditTrailView(ReviewedPageQuerysetMixin, DetailView):
+class AuditTrailView(DetailView):
     template_name = 'wagtail_review/admin/audit_trail.html'
     page_title = _("Audit trail")
     header_icon = 'doc-empty-inverse'
     context_object_name = 'page'
+
+    def get_queryset(self):
+        return Review.get_pages_with_reviews_for_user(self.request.user)
 
     def get_object(self):
         return super().get_object().specific
