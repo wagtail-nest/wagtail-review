@@ -1,12 +1,20 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.http import JsonResponse
+from django.shortcuts import render
+from django.utils.translation import ugettext_lazy as _
+from django.views.generic.detail import DetailView
+
+import swapper
 
 from wagtail.admin.modal_workflow import render_modal_workflow
+from wagtail.admin.views import generic
+from wagtail.core.models import UserPagePermissionsProxy
 
 from wagtail_review.forms import get_review_form_class, ReviewerFormSet
 
 
+Review = swapper.load_model('wagtail_review', 'Review')
 User = get_user_model()
 
 
@@ -79,3 +87,41 @@ def autocomplete_users(request):
     ]
 
     return JsonResponse({'results': result_data})
+
+
+class ReviewedPageQuerysetMixin:
+    """
+    Mixin for detail or list views that work with page objects taken from the queryset of
+    pages that have reviews, and that the current user has edit permission for
+    """
+    def get_queryset(self):
+        # return a queryset of pages the user has edit permission over which have any reviews
+        user_perms = UserPagePermissionsProxy(self.request.user)
+        reviewed_pages = Review.objects.values_list('page_revision__page_id', flat=True).distinct()
+        return user_perms.editable_pages().filter(pk__in=reviewed_pages)
+
+
+class DashboardView(ReviewedPageQuerysetMixin, generic.IndexView):
+    template_name = 'wagtail_review/admin/dashboard.html'
+    page_title = _("Review dashboard")
+    context_object_name = 'pages'
+
+    def get_queryset(self):
+        return super().get_queryset().specific()
+
+
+class AuditTrailView(ReviewedPageQuerysetMixin, DetailView):
+    template_name = 'wagtail_review/admin/audit_trail.html'
+    page_title = _("Audit trail")
+    header_icon = 'doc-empty-inverse'
+    context_object_name = 'page'
+
+    def get_object(self):
+        return super().get_object().specific
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['reviews'] = Review.objects.filter(
+            page_revision__page=self.object
+        ).order_by('created_at').select_related('submitter').prefetch_related('reviewers__responses')
+        return context

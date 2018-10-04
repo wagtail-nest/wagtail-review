@@ -44,6 +44,12 @@ class BaseReview(models.Model):
     def get_annotations(self):
         return Annotation.objects.filter(reviewer__review=self).prefetch_related('ranges')
 
+    def get_responses(self):
+        return Response.objects.filter(reviewer__review=self).order_by('created_at').select_related('reviewer')
+
+    def get_non_responding_reviewers(self):
+        return self.reviewers.filter(responses__isnull=True)
+
     class Meta:
         abstract = True
 

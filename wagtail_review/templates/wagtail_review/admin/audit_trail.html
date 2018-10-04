@@ -1,0 +1,45 @@
+{% extends "wagtailadmin/base.html" %}
+{% load i18n %}
+
+{% block titletag %}{{ view.page_title }} {{ view.get_page_subtitle }}{% endblock %}
+
+{% block content %}
+
+    {% include "wagtailadmin/shared/header.html" with title=view.page_title subtitle=page.get_admin_display_title icon=view.header_icon %}
+
+    <div class="nice-padding">
+        {% for review in reviews %}
+            <h3>
+                {% blocktrans with submitter=review.submitter.get_full_name datetime=review.created_at|date:"H:i j M Y" %}Review requested by {{ submitter }} at {{ datetime }}{% endblocktrans %} - <strong>{{ review.get_status_display }}</strong>
+            </h3>
+            <table class="listing">
+                <thead>
+                    <tr>
+                        <th>{% trans "Reviewer" %}</th>
+                        <th>{% trans "Response" %}</th>
+                        <th>{% trans "Date" %}</th>
+                        <th>{% trans "Comments" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for response in review.get_responses %}
+                        <tr>
+                            <td>{{ response.reviewer.get_name }}</td>
+                            <td>{{ response.get_result_display }}</td>
+                            <td>{{ response.created_at|date:"H:i j M Y" }}</td>
+                            <td>{{ response.comment }}</td>
+                        </tr>
+                    {% endfor %}
+                    {% for reviewer in review.get_non_responding_reviewers %}
+                        <tr>
+                            <td>{{ reviewer.get_name }}</td>
+                            <td>{% trans "Awaiting response" %}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    </div>
+{% endblock %}
