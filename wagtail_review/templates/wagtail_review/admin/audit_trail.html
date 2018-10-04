@@ -1,7 +1,12 @@
 {% extends "wagtailadmin/base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block titletag %}{{ view.page_title }} {{ view.get_page_subtitle }}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'wagtail_review/css/audit_trail.css' %}">
+{% endblock %}
 
 {% block content %}
 
@@ -40,6 +45,32 @@
                     {% endfor %}
                 </tbody>
             </table>
+
+            <ul class="actions">
+                {% if review.status == 'closed' %}
+                    <li>
+                        <form action="{% url 'wagtail_review_admin:reopen_review' review_id=review.id %}" method="POST">
+                            {% csrf_token %}
+                            <button class="button button-secondary button-small">{% trans "Reopen" %}</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li>
+                        <form action="{% url 'wagtail_review_admin:close_review' review_id=review.id %}" method="POST">
+                            {% csrf_token %}
+                            <button class="button button-secondary button-small">{% trans "Close" %}</button>
+                        </form>
+                    </li>
+                    {% if page_permissions.can_publish %}
+                        <li>
+                            <form action="{% url 'wagtail_review_admin:close_and_publish' review_id=review.id %}" method="POST">
+                                {% csrf_token %}
+                                <button class="button button-secondary button-small">{% trans "Close and publish" %}</button>
+                            </form>
+                        </li>
+                    {% endif %}
+                {% endif %}
+            </ul>
         {% endfor %}
     </div>
 {% endblock %}

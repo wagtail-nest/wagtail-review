@@ -1,0 +1,11 @@
+ul.actions {
+    list-style-type: none;
+    margin-top: -.5em;
+    padding: 0;
+}
+
+ul.actions li {
+    float: left;
+    padding: 0 0.5em 0 0;
+    margin: 0 0 0.5em;
+}

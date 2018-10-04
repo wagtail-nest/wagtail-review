@@ -1,15 +1,17 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.http import require_POST
 from django.views.generic.detail import DetailView
 
 import swapper
 
+from wagtail.admin import messages
 from wagtail.admin.modal_workflow import render_modal_workflow
 from wagtail.admin.views import generic
-from wagtail.core.models import UserPagePermissionsProxy
 
 from wagtail_review.forms import get_review_form_class, ReviewerFormSet
 
@@ -112,7 +114,61 @@ class AuditTrailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         context['reviews'] = Review.objects.filter(
             page_revision__page=self.object
         ).order_by('created_at').select_related('submitter').prefetch_related('reviewers__responses')
+        context['page_permissions'] = self.object.permissions_for_user(self.request.user)
+
         return context
+
+
+@require_POST
+def close_review(request, review_id=None):
+    review = get_object_or_404(Review, id=review_id)
+    page = review.page_revision.as_page_object()
+    perms = page.permissions_for_user(request.user)
+
+    if not (perms.can_edit() or perms.can_publish()):
+        raise PermissionDenied
+
+    review.status = 'closed'
+    review.save()
+
+    messages.success(request, _("The review has been closed."))
+
+    return redirect('wagtail_review_admin:audit_trail', page.id)
+
+
+@require_POST
+def close_and_publish(request, review_id=None):
+    review = get_object_or_404(Review, id=review_id)
+    page = review.page_revision.as_page_object()
+    perms = page.permissions_for_user(request.user)
+    if not perms.can_publish():
+        raise PermissionDenied
+
+    review.status = 'closed'
+    review.save()
+    review.page_revision.publish()
+
+    messages.success(request, _("The review has been closed and the page published."))
+
+    return redirect('wagtail_review_admin:audit_trail', page.id)
+
+
+@require_POST
+def reopen_review(request, review_id=None):
+    review = get_object_or_404(Review, id=review_id)
+    page = review.page_revision.as_page_object()
+    perms = page.permissions_for_user(request.user)
+
+    if not (perms.can_edit() or perms.can_publish()):
+        raise PermissionDenied
+
+    review.status = 'open'
+    review.save()
+
+    messages.success(request, _("The review has been reopened."))
+
+    return redirect('wagtail_review_admin:audit_trail', page.id)
