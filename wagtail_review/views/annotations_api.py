@@ -17,7 +17,7 @@ def _check_reviewer_credentials(request):
     except (KeyError, Reviewer.DoesNotExist):
         raise PermissionDenied
 
-    if mode == 'respond' and token == reviewer.response_token:
+    if (mode == 'respond' or mode == 'comment') and token == reviewer.response_token:
         pass
     elif mode == 'view' and token == reviewer.view_token:
         pass
@@ -46,7 +46,7 @@ def index(request):
         return JsonResponse(results, safe=False)
 
     elif request.method == 'POST':
-        if mode != 'respond':
+        if mode not in ('respond', 'comment'):
             raise PermissionDenied
 
         data = json.loads(request.body)

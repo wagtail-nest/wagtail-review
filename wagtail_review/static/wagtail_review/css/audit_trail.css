@@ -1,6 +1,11 @@
+.review {
+    clear: both;
+}
+
 ul.actions {
     list-style-type: none;
     margin-top: -.5em;
+    margin-bottom: 7em;
     padding: 0;
 }
 

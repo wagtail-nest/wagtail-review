@@ -11,14 +11,13 @@ def wagtailreview(context):
     review_mode = getattr(request, 'wagtailreview_mode', None)
     reviewer = getattr(request, 'wagtailreview_reviewer', None)
 
-    if review_mode == 'respond':
+    if review_mode == 'respond' or review_mode == 'comment':
         return {
             'mode': review_mode,
             'reviewer': reviewer,
             'token': reviewer.response_token,
             'response_form': ResponseForm()
         }
-
     elif review_mode == 'view':
         return {
             'mode': review_mode,

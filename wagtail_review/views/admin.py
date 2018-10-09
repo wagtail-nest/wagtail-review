@@ -14,6 +14,7 @@ from wagtail.admin.modal_workflow import render_modal_workflow
 from wagtail.admin.views import generic
 
 from wagtail_review.forms import get_review_form_class, ReviewerFormSet
+from wagtail_review.models import Reviewer
 
 
 Review = swapper.load_model('wagtail_review', 'Review')
@@ -121,6 +122,41 @@ class AuditTrailView(DetailView):
         context['page_permissions'] = self.object.permissions_for_user(self.request.user)
 
         return context
+
+
+def view_review_page(request, review_id=None):
+    review = get_object_or_404(Review, id=review_id)
+
+    # find a reviewer record corresponding to the current user
+    # (the submitter of the review should always have one)
+    try:
+        reviewer = review.reviewers.get(user=request.user)
+    except Reviewer.DoesNotExist:
+        # current user is not participating in the review;
+        # if they have edit access to the page, give them the submitter's
+        # read-only credentials so that they can see annotations
+
+        page = review.page_revision.as_page_object()
+        perms = page.permissions_for_user(request.user)
+
+        if not (perms.can_edit() or perms.can_publish()):
+            raise PermissionDenied
+
+        try:
+            reviewer = review.reviewers.get(user=review.submitter)
+        except Reviewer.DoesNotExist:
+            raise PermissionDenied
+
+    page = review.page_revision.as_page_object()
+    dummy_request = page.dummy_request(request)
+    dummy_request.wagtailreview_reviewer = reviewer
+
+    if reviewer.user == request.user:
+        dummy_request.wagtailreview_mode = 'comment'
+    else:
+        dummy_request.wagtailreview_mode = 'view'
+
+    return page.serve_preview(dummy_request, page.default_preview_mode)
 
 
 @require_POST

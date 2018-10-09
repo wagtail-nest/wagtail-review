@@ -14,63 +14,68 @@
 
     <div class="nice-padding">
         {% for review in reviews %}
-            <h3>
-                {% blocktrans with submitter=review.submitter.get_full_name datetime=review.created_at|date:"H:i j M Y" %}Review requested by {{ submitter }} at {{ datetime }}{% endblocktrans %} - <strong>{{ review.get_status_display }}</strong>
-            </h3>
-            <table class="listing">
-                <thead>
-                    <tr>
-                        <th>{% trans "Reviewer" %}</th>
-                        <th>{% trans "Response" %}</th>
-                        <th>{% trans "Date" %}</th>
-                        <th>{% trans "Comments" %}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for response in review.get_responses %}
+            <div class="review">
+                <h3>
+                    {% blocktrans with submitter=review.submitter.get_full_name datetime=review.created_at|date:"H:i j M Y" %}Review requested by {{ submitter }} at {{ datetime }}{% endblocktrans %} - <strong>{{ review.get_status_display }}</strong>
+                </h3>
+                <table class="listing">
+                    <thead>
                         <tr>
-                            <td>{{ response.reviewer.get_name }}</td>
-                            <td>{{ response.get_result_display }}</td>
-                            <td>{{ response.created_at|date:"H:i j M Y" }}</td>
-                            <td>{{ response.comment }}</td>
+                            <th>{% trans "Reviewer" %}</th>
+                            <th>{% trans "Response" %}</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Comments" %}</th>
                         </tr>
-                    {% endfor %}
-                    {% for reviewer in review.get_non_responding_reviewers %}
-                        <tr>
-                            <td>{{ reviewer.get_name }}</td>
-                            <td>{% trans "Awaiting response" %}</td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for response in review.get_responses %}
+                            <tr>
+                                <td>{{ response.reviewer.get_name }}</td>
+                                <td>{{ response.get_result_display }}</td>
+                                <td>{{ response.created_at|date:"H:i j M Y" }}</td>
+                                <td>{{ response.comment }}</td>
+                            </tr>
+                        {% endfor %}
+                        {% for reviewer in review.get_non_responding_reviewers %}
+                            <tr>
+                                <td>{{ reviewer.get_name }}</td>
+                                <td>{% trans "Awaiting response" %}</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
 
-            <ul class="actions">
-                {% if review.status == 'closed' %}
+                <ul class="actions">
                     <li>
-                        <form action="{% url 'wagtail_review_admin:reopen_review' review_id=review.id %}" method="POST">
-                            {% csrf_token %}
-                            <button class="button button-secondary button-small">{% trans "Reopen" %}</button>
-                        </form>
+                        <a class="button button-secondary button-small" href="{% url 'wagtail_review_admin:view_review_page' review_id=review.id %}">{% trans "View page" %}</a>
                     </li>
-                {% else %}
-                    <li>
-                        <form action="{% url 'wagtail_review_admin:close_review' review_id=review.id %}" method="POST">
-                            {% csrf_token %}
-                            <button class="button button-secondary button-small">{% trans "Close" %}</button>
-                        </form>
-                    </li>
-                    {% if page_permissions.can_publish %}
+                    {% if review.status == 'closed' %}
                         <li>
-                            <form action="{% url 'wagtail_review_admin:close_and_publish' review_id=review.id %}" method="POST">
+                            <form action="{% url 'wagtail_review_admin:reopen_review' review_id=review.id %}" method="POST">
                                 {% csrf_token %}
-                                <button class="button button-secondary button-small">{% trans "Close and publish" %}</button>
+                                <button class="button button-secondary button-small">{% trans "Reopen" %}</button>
                             </form>
                         </li>
+                    {% else %}
+                        <li>
+                            <form action="{% url 'wagtail_review_admin:close_review' review_id=review.id %}" method="POST">
+                                {% csrf_token %}
+                                <button class="button button-secondary button-small">{% trans "Close" %}</button>
+                            </form>
+                        </li>
+                        {% if page_permissions.can_publish %}
+                            <li>
+                                <form action="{% url 'wagtail_review_admin:close_and_publish' review_id=review.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <button class="button button-secondary button-small">{% trans "Close and publish" %}</button>
+                                </form>
+                            </li>
+                        {% endif %}
                     {% endif %}
-                {% endif %}
-            </ul>
+                </ul>
+            </div>
         {% endfor %}
     </div>
 {% endblock %}

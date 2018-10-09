@@ -32,11 +32,14 @@
                 </fieldset>
             </form>
         </div>
+    {% elif mode == 'comment' %}
+        {# provide an empty respond form so that we can pull the CSRF token from it #}
+        <form id="wagtailreview-respond-form">{% csrf_token %}</form>
     {% endif %}
 
     <script>
         var app = new annotator.App();
-        {% if mode == 'respond' %}
+        {% if mode == 'respond' or mode == 'comment' %}
             app.include(annotator.ui.main);
         {% else %}
             app.include(annotatorExt.viewerModeUi);
@@ -50,7 +53,7 @@
                 search: 'search/'
             },
             'headers': {
-                {% if mode == 'respond' %}
+                {% if mode == 'respond' or mode == 'comment' %}
                     'X-CSRFToken': document.getElementById('wagtailreview-respond-form').csrfmiddlewaretoken.value,
                 {% endif %}
                 'X-WagtailReview-mode': '{{ mode }}',

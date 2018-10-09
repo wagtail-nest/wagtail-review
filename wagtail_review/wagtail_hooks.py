@@ -63,6 +63,9 @@ def handle_submit_for_review(request, page):
         form.save()
         reviewer_formset.save()
 
+        # create a reviewer record for the current user
+        review.reviewers.create(user=review.submitter)
+
         review.send_request_emails()
 
         # clear original confirmation message as set by the create/edit view,

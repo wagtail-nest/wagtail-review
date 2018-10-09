@@ -35,7 +35,8 @@ class BaseReview(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def send_request_emails(self):
-        for reviewer in self.reviewers.all():
+        # send request emails to all reviewers except the reviewer record for the user submitting the request
+        for reviewer in self.reviewers.exclude(user=self.submitter):
             reviewer.send_request_email()
 
     @cached_property
@@ -49,7 +50,7 @@ class BaseReview(models.Model):
         return Response.objects.filter(reviewer__review=self).order_by('created_at').select_related('reviewer')
 
     def get_non_responding_reviewers(self):
-        return self.reviewers.filter(responses__isnull=True)
+        return self.reviewers.filter(responses__isnull=True).exclude(user=self.submitter)
 
     @classmethod
     def get_pages_with_reviews_for_user(cls, user):

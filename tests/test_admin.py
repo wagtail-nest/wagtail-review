@@ -118,10 +118,10 @@ class TestAdminViews(TestCase):
 
         revision = self.homepage.get_latest_revision()
         review = Review.objects.get(page_revision=revision)
-        self.assertEqual(review.reviewers.count(), 2)
+        self.assertEqual(review.reviewers.count(), 3)
 
         reviewer_emails = set(reviewer.get_email_address() for reviewer in review.reviewers.all())
-        self.assertEqual(reviewer_emails, {'someone@example.com', 'spongebob@example.com'})
+        self.assertEqual(reviewer_emails, {'admin@example.com', 'someone@example.com', 'spongebob@example.com'})
 
         self.assertEqual(len(mail.outbox), 2)
         email_recipients = set(email.to[0] for email in mail.outbox)
@@ -152,10 +152,10 @@ class TestAdminViews(TestCase):
 
         revision = Page.objects.get(slug='subpage-submitted').get_latest_revision()
         review = Review.objects.get(page_revision=revision)
-        self.assertEqual(review.reviewers.count(), 2)
+        self.assertEqual(review.reviewers.count(), 3)
 
         reviewer_emails = set(reviewer.get_email_address() for reviewer in review.reviewers.all())
-        self.assertEqual(reviewer_emails, {'someone@example.com', 'spongebob@example.com'})
+        self.assertEqual(reviewer_emails, {'admin@example.com', 'someone@example.com', 'spongebob@example.com'})
 
         self.assertEqual(len(mail.outbox), 2)
         email_recipients = set(email.to[0] for email in mail.outbox)
