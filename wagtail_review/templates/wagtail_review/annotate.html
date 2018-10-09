@@ -40,7 +40,9 @@
     <script>
         var app = new annotator.App();
         {% if mode == 'respond' or mode == 'comment' %}
-            app.include(annotator.ui.main);
+            app.include(annotator.ui.main, {
+                viewerExtensions: [annotatorExt.viewerWithUsernames]
+            });
         {% else %}
             app.include(annotatorExt.viewerModeUi);
         {% endif %}
