@@ -1,5 +1,5 @@
 {% extends "wagtailadmin/generic/index.html" %}
-{% load i18n %}
+{% load i18n wagtailreview_admin_tags %}
 
 {% block listing %}
     <div class="nice-padding">
@@ -26,7 +26,10 @@
                                     <a href="{% url 'wagtail_review_admin:audit_trail' page.id %}">{{ page.get_admin_display_title }}</a>
                                 </h2>
                             </td>
-                            <td class="status">{{ review.status }}</td>
+                            <td class="status">
+                                {% page_has_open_review page as is_open %}
+                                {% if is_open %}{% trans "Open" %}{% else %}{% trans "Closed" %}{% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
