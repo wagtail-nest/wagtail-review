@@ -1,0 +1,3 @@
+{% load i18n %}
+
+{% blocktrans with reviewer=reviewer.name|safe page_title=page.title|safe %}Response received from {{ reviewer }} on: {{ page_title }}{% endblocktrans %}

@@ -1,0 +1,11 @@
+{% load i18n %}
+
+{% blocktrans with full_name=submitter.get_full_name|safe %}Dear {{ full_name }},{% endblocktrans %}
+{% if response.result == 'approve' %}
+{% blocktrans with reviewer=reviewer.get_name|safe page_title=page.title|safe %}{{ reviewer }} has approved the page "{{ page_title }}".{% endblocktrans %}
+{% else %}
+{% blocktrans with reviewer=reviewer.get_name|safe page_title=page.title|safe %}{{ reviewer }} has commented on the page "{{ page_title }}".{% endblocktrans %}
+{% endif %}
+{% if response.comment %}{% trans "Comment:" %}
+{{ response.comment|safe }}
+{% endif %}

@@ -185,3 +185,20 @@ class Response(models.Model):
     result = models.CharField(choices=RESULT_CHOICES, max_length=10, blank=False, default=None)
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def send_notification_to_submitter(self):
+        submitter = self.reviewer.review.submitter
+        if submitter.email:
+
+            context = {
+                'submitter': submitter,
+                'reviewer': self.reviewer,
+                'review': self.reviewer.review,
+                'page': self.reviewer.review.revision_as_page,
+                'response': self,
+            }
+
+            email_subject = render_to_string('wagtail_review/email/response_received_subject.txt', context).strip()
+            email_content = render_to_string('wagtail_review/email/response_received.txt', context).strip()
+
+            send_mail(email_subject, email_content, [submitter.email])

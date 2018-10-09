@@ -28,7 +28,7 @@ Add a `{% wagtailreview %}` tag to your project's base template(s), towards the 
 
 ## Custom notification emails
 
-To customise notification email content, override the templates `wagtail_review/email/request_review_subject.txt` (for the subject line) and `wagtail_review/email/request_review.txt` (for the email content). This needs to be done in an app which appears above `wagtail_review` in the `INSTALLED_APPS` list.
+To customise the notification email sent to reviewers, override the templates `wagtail_review/email/request_review_subject.txt` (for the subject line) and `wagtail_review/email/request_review.txt` (for the email content). This needs to be done in an app which appears above `wagtail_review` in the `INSTALLED_APPS` list.
 
 The following context variables are available within the templates:
 
@@ -39,6 +39,16 @@ The following context variables are available within the templates:
  * `submitter`: user object of the Wagtail user submitting the page for review
  * `respond_url`: Personalised URL (including domain) for this reviewer intended to be kept private, allowing them to respond to the review
  * `view_url`: Personalised URL (including domain) for this reviewer intended to be shared with colleagues, allowing them to view the page under review
+
+
+To customise the notification email sent to the review submitter when a reviewer responds,
+override the templates `wagtail_review/email/response_received_subject.txt` (for the subject line) and `wagtail_review/email/response_received.txt` (for the email content). The following context variables are available:
+
+ * `submitter`: The user object of the Wagtail user who submitted the page for review
+ * `reviewer`: Reviewer object for the person responding to the review
+ * `review`: The review object (probably only useful when a custom review model is in use - see below)
+ * `page`: Page object corresponding to the page revision being reviewed
+ * `response`: Object representing the reviewer's response, including fields 'result' (equal to 'approve' or 'comment') and 'comment'
 
 
 ## Custom review models

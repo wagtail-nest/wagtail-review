@@ -28,6 +28,7 @@ def respond(request, reviewer_id, token):
         form = ResponseForm(request.POST, instance=response)
         if form.is_valid():
             form.save()
+            response.send_notification_to_submitter()
             return HttpResponse("Thank you, your review has been received.")
 
     else:
