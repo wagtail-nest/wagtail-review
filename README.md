@@ -81,3 +81,28 @@ To define a custom review model:
 
     WAGTAILREVIEW_REVIEW_MODEL = 'my_app.Review'  # appname.ModelName identifier for model
     WAGTAILREVIEW_REVIEW_FORM = 'my_project.my_app.forms.CreateReviewForm'  # dotted path to form class
+
+
+## Custom response form
+
+The form for responding to reviews can be customised by overriding the template `wagtail_review/response_form_fields.html`; this needs to be done in an app which appears above `wagtail_review` in the `INSTALLED_APPS` list. The HTML for the default form is:
+
+    <fieldset>
+        <legend>Submit your review</legend>
+
+        {% for radio in response_form.result %}
+            <div class="o-form__group o-form__group--radios">
+                {{ radio }}
+            </div>
+        {% endfor %}
+
+        <div class="o-form__group">
+            <label for="id_comment" class="label-comment">Leave a comment</label>
+            {{ response_form.comment }}
+        </div>
+
+        <div class="o-form__group">
+            <input type="submit" value="Submit review" id="submit" />
+        </div>
+
+    </fieldset>

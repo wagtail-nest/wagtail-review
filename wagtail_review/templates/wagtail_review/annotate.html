@@ -10,26 +10,7 @@
             <a href="#" class="js-show-submit" id="wagtailreview-respond-button">Submit your review</a>
             <form id="wagtailreview-respond-form" action="{{ reviewer.get_respond_url }}" method="POST">
                 {% csrf_token %}
-
-                <fieldset>
-                    <legend>Submit your review</legend>
-
-                    {% for radio in response_form.result %}
-                        <div class="o-form__group o-form__group--radios">
-                            {{ radio }}
-                        </div>
-                    {% endfor %}
-
-                    <div class="o-form__group">
-                        <label for="id_comment" class="label-comment">Leave a comment</label>
-                        {{ response_form.comment }}
-                    </div>
-
-                    <div class="o-form__group">
-                        <input type="submit" value="Submit review" id="submit" />
-                    </div>
-
-                </fieldset>
+                {% include "wagtail_review/response_form_fields.html" %}
             </form>
         </div>
     {% elif allow_annotations %}

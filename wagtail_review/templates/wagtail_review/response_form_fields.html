@@ -1,0 +1,19 @@
+<fieldset>
+    <legend>Submit your review</legend>
+
+    {% for radio in response_form.result %}
+        <div class="o-form__group o-form__group--radios">
+            {{ radio }}
+        </div>
+    {% endfor %}
+
+    <div class="o-form__group">
+        <label for="id_comment" class="label-comment">Leave a comment</label>
+        {{ response_form.comment }}
+    </div>
+
+    <div class="o-form__group">
+        <input type="submit" value="Submit review" id="submit" />
+    </div>
+
+</fieldset>
