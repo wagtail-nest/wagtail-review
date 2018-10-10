@@ -5,7 +5,7 @@
     <script src="{% static 'wagtail_review/js/annotator-2.0.0a3.min.js' %}"></script>
     <script src="{% static 'wagtail_review/js/annotator-extensions.js' %}"></script>
 
-    {% if mode == 'respond' %}
+    {% if allow_responses %}
         <div class="wagtailreview-respond">
             <a href="#" class="js-show-submit" id="wagtailreview-respond-button">Submit your review</a>
             <form id="wagtailreview-respond-form" action="{{ reviewer.get_respond_url }}" method="POST">
@@ -32,14 +32,18 @@
                 </fieldset>
             </form>
         </div>
-    {% elif mode == 'comment' %}
+    {% elif allow_annotations %}
         {# provide an empty respond form so that we can pull the CSRF token from it #}
         <form id="wagtailreview-respond-form">{% csrf_token %}</form>
+    {% elif show_closed %}
+        <div class="wagtailreview-respond">
+            <span class="button-review-closed">This review is now closed</span>
+        </div>
     {% endif %}
 
     <script>
         var app = new annotator.App();
-        {% if mode == 'respond' or mode == 'comment' %}
+        {% if allow_annotations %}
             app.include(annotator.ui.main, {
                 viewerExtensions: [annotatorExt.viewerWithUsernames]
             });
@@ -55,7 +59,7 @@
                 search: 'search/'
             },
             'headers': {
-                {% if mode == 'respond' or mode == 'comment' %}
+                {% if allow_annotations %}
                     'X-CSRFToken': document.getElementById('wagtailreview-respond-form').csrfmiddlewaretoken.value,
                 {% endif %}
                 'X-WagtailReview-mode': '{{ mode }}',
@@ -67,7 +71,7 @@
             app.annotations.load();
         });
 
-        {% if mode == 'respond' %}
+        {% if allow_responses %}
             document.addEventListener('DOMContentLoaded', function() {
                 var form = document.getElementById('wagtailreview-respond-form');
                 form.style.display = 'none';

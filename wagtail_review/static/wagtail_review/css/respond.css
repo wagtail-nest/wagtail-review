@@ -65,7 +65,7 @@
     padding: 15px;
 }
 
-.wagtailreview-respond input[type="submit"], .wagtailreview-respond .js-show-submit {
+.wagtailreview-respond input[type="submit"], .wagtailreview-respond .js-show-submit, .wagtailreview-respond .button-review-closed {
     background: #43b2b0;
     border: 0;
     border-radius: 2px;

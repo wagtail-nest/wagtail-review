@@ -14,6 +14,9 @@ def wagtailreview(context):
     if review_mode == 'respond' or review_mode == 'comment':
         return {
             'mode': review_mode,
+            'allow_annotations': (reviewer.review.status != 'closed'),
+            'show_closed': (reviewer.review.status == 'closed'),
+            'allow_responses': (review_mode == 'respond' and reviewer.review.status != 'closed'),
             'reviewer': reviewer,
             'token': reviewer.response_token,
             'response_form': ResponseForm()
@@ -21,6 +24,9 @@ def wagtailreview(context):
     elif review_mode == 'view':
         return {
             'mode': review_mode,
+            'show_closed': False,
+            'allow_annotations': False,
+            'allow_responses': False,
             'reviewer': reviewer,
             'token': reviewer.view_token
         }

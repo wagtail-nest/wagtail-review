@@ -49,6 +49,9 @@ def index(request):
         if mode not in ('respond', 'comment'):
             raise PermissionDenied
 
+        if reviewer.review.status == 'closed':
+            raise PermissionDenied
+
         data = json.loads(request.body)
 
         annotation = reviewer.annotations.create(quote=data['quote'], text=data['text'])
