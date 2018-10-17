@@ -47,7 +47,7 @@ class TestFrontendViews(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "<h1>Simple page submitted</h1>")
         self.assertContains(response, "var app = new annotator.App();")
-        self.assertContains(response, "app.include(annotator.ui.main);")
+        self.assertContains(response, "app.include(annotator.ui.main,")
 
     def test_live_page_has_no_annotator_js(self):
         response = self.client.get('/simple-page/')
