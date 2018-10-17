@@ -2,11 +2,15 @@
 
 An extension for Wagtail allowing pages to be submitted for review (including to non-Wagtail users) prior to publication
 
+## Requirements
+
+Wagtail 2.2 or higher
+
 ## Installation
 
-From the root of the checked-out repository:
+Install the package from PyPI:
 
-    pip install -e .
+    pip install wagtail-review
 
 Add to your project's `INSTALLED_APPS`:
 
