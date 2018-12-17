@@ -8,7 +8,7 @@ setup(
     description="Review workflow for Wagtail",
     author='Matthew Westcott',
     author_email='matthew.westcott@torchbox.com',
-    url='https://github.com/torchbox/wagtail-review',
+    url='https://github.com/wagtail/wagtail-review',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
