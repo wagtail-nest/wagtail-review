@@ -2,6 +2,8 @@
 
 An extension for Wagtail allowing pages to be submitted for review (including to non-Wagtail users) prior to publication
 
+![Screencast demo](https://tom.s3.amazonaws.com/wagtail-review.gif)
+
 ## Requirements
 
 Wagtail 2.2 or higher
