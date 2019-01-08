@@ -16,6 +16,8 @@ from wagtail.admin.views import generic
 from wagtail_review.forms import get_review_form_class, ReviewerFormSet
 from wagtail_review.models import Reviewer
 
+from django.conf import settings
+
 
 Review = swapper.load_model('wagtail_review', 'Review')
 User = get_user_model()
@@ -151,10 +153,21 @@ def view_review_page(request, review_id=None):
     dummy_request = page.dummy_request(request)
     dummy_request.wagtailreview_reviewer = reviewer
 
-    if reviewer.user == request.user:
-        dummy_request.wagtailreview_mode = 'comment'
+    if review.submitter == request.user:
+        dummy_request.wagtailreview_mode = getattr(
+            settings,
+            "WAGTAIL_REVIEW_DEFAULT_SUBMITTER_MODE",
+            "comment")
+    elif reviewer.user == request.user:
+        dummy_request.wagtailreview_mode = getattr(
+            settings,
+            "WAGTAIL_REVIEW_DEFAULT_REVIEWER_MODE",
+            "respond")
     else:
-        dummy_request.wagtailreview_mode = 'view'
+        dummy_request.wagtailreview_mode = getattr(
+            settings,
+            "WAGTAIL_REVIEW_DEFAULT_USER_MODE",
+            "view")
 
     return page.serve_preview(dummy_request, page.default_preview_mode)
 

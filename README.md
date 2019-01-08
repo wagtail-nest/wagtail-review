@@ -32,6 +32,26 @@ Add a `{% wagtailreview %}` tag to your project's base template(s), towards the 
     {% wagtailreview %}
 
 
+## Review Modes
+
+There are three `review modes`:
+- `comment` mode (allowed to create annotations on a review)
+- `respond` mode (allowed to respond (annotate, comment and approve) a review)
+- `view` mode (allowed to only see a review and its annotations/comments - readonly)
+
+
+As is, this code has the following default `review modes` assigned:
+- _submitters_: `comment`
+- _reviewers_: `respond`
+- _users_: `view`
+
+This can be overriden with the following variables in your settings file:
+
+- `WAGTAIL_REVIEW_DEFAULT_SUBMITTER_MODE` for _submitters_
+- `WAGTAIL_REVIEW_DEFAULT_REVIEWER_MODE` for _reviewers_
+- `WAGTAIL_REVIEW_DEFAULT_USER_MODE` for _users_
+
+
 ## Custom notification emails
 
 To customise the notification email sent to reviewers, override the templates `wagtail_review/email/request_review_subject.txt` (for the subject line) and `wagtail_review/email/request_review.txt` (for the email content). This needs to be done in an app which appears above `wagtail_review` in the `INSTALLED_APPS` list.
