@@ -49,6 +49,25 @@ class TestFrontendViews(TestCase):
         self.assertContains(response, "var app = new annotator.App();")
         self.assertContains(response, "app.include(annotator.ui.main,")
 
+    def test_respond_view_post_not_authenticated_user(self):
+        response = self.client.post('/review/respond/%d/%s/' % (self.reviewer.id, self.reviewer.response_token),
+                                    data={'result': 'approve', 'comment': 'comment'})
+        self.assertEqual(response.status_code, 200)
+        review_response = self.reviewer.review.get_responses().last()
+        self.assertEqual(review_response.result, 'approve')
+        self.assertEqual(review_response.comment, 'comment')
+
+    def test_respond_view_post_authenticated_user(self):
+        self.client.login(username='admin', password='password')
+        response = self.client.post('/review/respond/%d/%s/' % (self.reviewer.id, self.reviewer.response_token),
+                                    data={'result': 'approve', 'comment': 'comment'})
+        self.client.logout()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/admin/wagtail_review/reviews/')
+        review_response = self.reviewer.review.get_responses().last()
+        self.assertEqual(review_response.result, 'approve')
+        self.assertEqual(review_response.comment, 'comment')
+
     def test_live_page_has_no_annotator_js(self):
         response = self.client.get('/simple-page/')
         self.assertEqual(response.status_code, 200)

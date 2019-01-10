@@ -1,9 +1,13 @@
+from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 
 from wagtail_review.forms import ResponseForm
 from wagtail_review.models import Response, Reviewer
+
+SUCCESS_RESPONSE_MESSAGE = "Thank you, your review has been received."
 
 
 def view(request, reviewer_id, token):
@@ -29,7 +33,10 @@ def respond(request, reviewer_id, token):
         if form.is_valid() and reviewer.review.status != 'closed':
             form.save()
             response.send_notification_to_submitter()
-            return HttpResponse("Thank you, your review has been received.")
+            if request.user.has_perm('wagtailadmin.access_admin'):
+                messages.success(request, SUCCESS_RESPONSE_MESSAGE)
+                return redirect(reverse('wagtail_review_admin:dashboard'))
+            return HttpResponse(SUCCESS_RESPONSE_MESSAGE)
 
     else:
         page = reviewer.review.page_revision.as_page_object()
