@@ -1,3 +1,9 @@
+0.2 (xxxx-xx-xx)
+----------------
+
+* Logged-in users are now redirected back to the Wagtail admin after submitting a review (Maylon Pedroso)
+
+
 0.1.1 (2018-10-17)
 ------------------
 
