@@ -51,6 +51,9 @@
                     <li>
                         <a class="button button-secondary button-small" href="{% url 'wagtail_review_admin:view_review_page' review_id=review.id %}">{% trans "View page" %}</a>
                     </li>
+                    <li>
+                        <a class="button button-secondary button-small" href="{% url 'wagtailadmin_pages:edit' review.page_revision.page.id %}">{% trans "Edit page" %}</a>
+                    </li>
                     {% if review.status == 'closed' %}
                         <li>
                             <form action="{% url 'wagtail_review_admin:reopen_review' review_id=review.id %}" method="POST">
