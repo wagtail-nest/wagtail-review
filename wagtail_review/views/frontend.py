@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
+from django.middleware.csrf import get_token as get_csrf_token
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 
@@ -41,6 +42,13 @@ def respond(request, reviewer_id, token):
     else:
         page = reviewer.review.page_revision.as_page_object()
         dummy_request = page.dummy_request(request)
+
+        # Fetch the CSRF token so that Django will return a set-cookie header in the case that this is
+        # the user's first request, and ensure that the dummy request (where the submit-review form is
+        # rendered) is using the same token
+        get_csrf_token(request)
+        dummy_request.META["CSRF_COOKIE"] = request.META["CSRF_COOKIE"]
+
         dummy_request.wagtailreview_mode = 'respond'
         dummy_request.wagtailreview_reviewer = reviewer
         return page.serve_preview(dummy_request, page.default_preview_mode)

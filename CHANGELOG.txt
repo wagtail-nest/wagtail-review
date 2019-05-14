@@ -2,6 +2,7 @@
 ----------------
 
 * Logged-in users are now redirected back to the Wagtail admin after submitting a review (Maylon Pedroso)
+* Fix: CSRF token is now set correctly when the 'respond to review' view is the user's first request (Matt Westcott)
 
 
 0.1.1 (2018-10-17)
