@@ -2,6 +2,10 @@
     background-color: black;
 }
 
+.annotator-hl {
+    background-color: rgba(0, 177, 179, 0.4);
+}
+
 .annotator-adder {
     background-image: url("data:image/svg+xml,%3Csvg width='36' height='44' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M26.8 36L18 44l-8.8-8H4a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4h-5.2z' fill='%23333' fill-rule='evenodd'/%3E%3C/svg%3E%0A");
     background-position: center;
