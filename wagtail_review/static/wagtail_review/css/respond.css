@@ -3,18 +3,22 @@
 .wagtailreview-respond {
     bottom: 35px;
     font-family: 'Open Sans', sans-serif;
+    font-size: 13px;
+    line-height: 18px;
     position: fixed;
     right: 35px;
     z-index: 9999;
 }
 
+.wagtailreview-respond .button-review-closed,
 .wagtailreview-respond .js-show-submit {
     align-items: center;
     background-color: #fff;
-    border-radius: 3px;
+    border-radius: 4px;
     border: 0;
     box-shadow: 0 0 8px 0 rgba(0,125,126,0.43);
     color: #007d7e;
+    cursor: pointer;
     display: flex;
     flex-direction: row;
     font-size: 13px;
@@ -27,6 +31,11 @@
     text-transform: uppercase;
 }
 
+.wagtailreview-respond .button-review-closed {
+    cursor: default;
+    padding: 8px 16px;
+}
+
 .wagtailreview-respond .js-show-submit .wagtail-icon {
     color: #000;
     font-size: 32px;
@@ -35,76 +44,78 @@
     width: 32px;
 }
 
-.wagtailreview-respond form {
+.wagtailreview-respond-form {
+    background-color: #333;
+    border-radius: 4px;
+    bottom: 70px;
+    box-shadow: 0 0 15px 0 rgba(0,0,0,0.28);
+    color: #fff;
+    padding: 24px;
     position: absolute;
-    top: 60px;
-    right: 10px;
-    background: #fff;
-    border: 1px solid rgba(27,31,35,0.15);
-    box-shadow: 0 3px 12px rgba(27,31,35,0.15);
+    right: 0;
+    width: 370px;
  }
 
-.wagtailreview-respond fieldset {
-    border-color: #eee;
-    margin-top: 20px;
-    padding: 5px 10px 20px 10px;
+.wagtailreview-respond-form::after {
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 20px solid #333;
+    bottom: -10px;
+    content: "";
+    height: 0;
+    position: absolute;
+    right: 10px;
+    width: 0;
 }
 
-.wagtailreview-respond legend {
-    display: none;
-}
-
-.wagtailreview-respond input {
-    float: left;
-}
-
-.wagtailreview-respond label {
-    float: left;
-    font-weight: bold;
-}
-
-.wagtailreview-respond label span {
-    color: #999;
-    display: block;
-    font-weight: normal;
-}
-
-.wagtailreview-respond textarea {
-    border-color: #999;
-    border-radius: 4px;
-}
-
-.wagtailreview-respond .o-form__group--radios label {
-    padding-left: 10px;
-}
-
-.wagtailreview-respond .label-comment {
-    float: none;
-    display: block;
-    padding-bottom: 5px;
-    padding-top: 10px;
-}
-
-.wagtailreview-respond .o-form__group {
-    clear: left;
-    padding: 15px;
-}
-
-.wagtailreview-respond input[type="submit"],
-.wagtailreview-respond .button-review-closed {
-    background: #43b2b0;
+.wagtailreview-respond-form fieldset {
     border: 0;
-    border-radius: 2px;
+    margin: 0;
+    padding: 0;
+}
+
+.wagtailreview-respond-form legend {
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 28px;
+}
+
+.wagtailreview-respond-form__radios {
+    display: flex;
+    flex-direction: row;
+    margin: 24px 0;
+}
+
+.wagtailreview-respond-form__radios label:not(:last-child) {
+    margin-right: 24px;
+}
+
+.wagtailreview-respond-form__comment label {
+    font-weight: 600;
+}
+
+.wagtailreview-respond-form__comment textarea {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    border: 0;
     color: #fff;
-    font-size: inherit;
-    padding: 12px 16px;
+    font-style: normal;
+    margin: 12px 0 24px;
+    outline: 0;
+    padding: 10px;
 }
 
-.wagtailreview-respond input[type="submit"]:hover {
+.wagtailreview-respond-form__submit input {
+    background-color: #007d7e;
+    border-radius: 4px;
+    border: 0;
+    color: #fff;
     cursor: pointer;
-    background: #5a898a;
-}
-
-.wagtailreview-respond .js-icon-up:after {
-    content: " \25b2";
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 18px;
+    outline: 0;
+    padding: 8px 16px;
+    text-decoration: none;
+    text-transform: uppercase;
 }
