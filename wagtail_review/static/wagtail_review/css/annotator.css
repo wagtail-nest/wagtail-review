@@ -1,9 +1,36 @@
 .annotator-widget {
-    background-color: black;
+    background-color: #333;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.annotator-widget::after {
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 20px solid #333;
+    height: 0;
+    width: 0;
 }
 
 .annotator-hl {
     background-color: rgba(0, 177, 179, 0.4);
+}
+
+.annotator-viewer div:first-of-type {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    font-style: normal;
+    line-height: 18px;
+    padding: 5px;
+}
+
+.annotator-viewer p {
+    color: #fff;
+    font-size: 14px;
+    font-style: italic;
+    font-weight: 700;
+    line-height: 18px;
+    margin-bottom: 3px;
 }
 
 .annotator-adder {
@@ -22,12 +49,15 @@
 .annotator-adder::before {
     -moz-box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.44);
     -webkit-box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.44);
+    border-radius: 4px;
     box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.44);
     content: "";
+    height: 36px;
     left: 0;
+    pointer-events: none;
     position: absolute;
-    right: 0;
     top: 0;
+    width: 36px;
 }
 
 .annotator-adder::after {
