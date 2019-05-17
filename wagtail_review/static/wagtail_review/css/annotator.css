@@ -1,6 +1,14 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans&display=swap');
+
+.annotator-filter *,
+.annotator-notice,
+.annotator-widget * {
+    font-family: 'Open Sans', sans-serif;
+}
+
 .annotator-widget {
     background-color: #333;
-    border-radius: 5px;
+    border-radius: 4px;
     padding: 10px;
 }
 
@@ -72,4 +80,67 @@
     position: absolute;
     top: 10px;
     width: 16px;
+}
+
+.annotator-editor .annotator-item:first-child textarea {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: #fff;
+    font-style: normal;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+
+.annotator-editor .annotator-item:first-child textarea:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.annotator-editor .annotator-controls {
+    background: none;
+    border: 0;
+    box-shadow: none;
+}
+
+.annotator-editor a,
+.annotator-editor a.annotator-save,
+.annotator-editor a.annotator-save,
+.annotator-editor a:focus,
+.annotator-editor a:hover,
+.annotator-filter .annotator-filter-active label,
+.annotator-filter .annotator-filter-navigation button:hover {
+    background: none;
+    border-radius: 4px;
+    border: 1px solid #626262;
+    box-shadow: none;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    padding: 4px 8px;
+    text-shadow: none;
+    text-transform: uppercase;
+}
+
+.annotator-editor a.annotator-save {
+    background-color: #007d7e;
+    border: 0;
+}
+
+.annotator-editor a.annotator-save:hover,
+.annotator-editor a.annotator-save:focus {
+    background-color: #00676a;
+}
+
+.annotator-editor a:after {
+    display: none;
+}
+
+.annotator-editor a:not(:last-child) {
+    margin-right: 7px;
+}
+
+.annotator-editor a:hover,
+.annotator-editor a:focus {
+    background: none;
+    border-color: #626262;
 }
