@@ -1,6 +1,7 @@
 {% load static %}
 
 {% if mode %}
+    <link rel="stylesheet" href="{% static 'wagtailadmin/css/userbar.css' %}">
     <link rel="stylesheet" href="{% static 'wagtail_review/css/annotator.css' %}">
     <link rel="stylesheet" href="{% static 'wagtail_review/css/respond.css' %}">
     <script src="{% static 'wagtail_review/js/annotator-2.0.0a3.min.js' %}"></script>
@@ -8,7 +9,10 @@
 
     {% if allow_responses %}
         <div class="wagtailreview-respond">
-            <a href="#" class="js-show-submit" id="wagtailreview-respond-button">Submit your review</a>
+            <a href="#" class="js-show-submit" id="wagtailreview-respond-button">
+                <span>Submit your review</span>
+                <span class="wagtail-icon wagtail-icon-wagtail"></span>
+            </a>
             <form id="wagtailreview-respond-form" action="{{ reviewer.get_respond_url }}" method="POST">
                 {% csrf_token %}
                 {% include "wagtail_review/response_form_fields.html" %}
