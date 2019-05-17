@@ -1,13 +1,38 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,600&display=swap');
+
 .wagtailreview-respond {
-    font-family: arial, helvetica, sans-serif;
-    padding: 20px 10px;
+    bottom: 35px;
+    font-family: 'Open Sans', sans-serif;
     position: fixed;
-    top: 0;
-    right: 0;
+    right: 35px;
     z-index: 9999;
 }
-.wagtailreview-respond a {
-    color: #fff;
+
+.wagtailreview-respond .js-show-submit {
+    align-items: center;
+    background-color: #fff;
+    border-radius: 3px;
+    border: 0;
+    box-shadow: 0 0 8px 0 rgba(0,125,126,0.43);
+    color: #007d7e;
+    display: flex;
+    flex-direction: row;
+    font-size: 13px;
+    font-weight: 600;
+    justify-content: space-between;
+    line-height: 18px;
+    outline: 0;
+    padding: 8px 6px 8px 16px;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.wagtailreview-respond .js-show-submit .wagtail-icon {
+    color: #000;
+    font-size: 32px;
+    height: 32px;
+    margin-left: 6px;
+    width: 32px;
 }
 
 .wagtailreview-respond form {
@@ -65,7 +90,8 @@
     padding: 15px;
 }
 
-.wagtailreview-respond input[type="submit"], .wagtailreview-respond .js-show-submit, .wagtailreview-respond .button-review-closed {
+.wagtailreview-respond input[type="submit"],
+.wagtailreview-respond .button-review-closed {
     background: #43b2b0;
     border: 0;
     border-radius: 2px;
@@ -77,21 +103,6 @@
 .wagtailreview-respond input[type="submit"]:hover {
     cursor: pointer;
     background: #5a898a;
-}
-
-.wagtailreview-respond .js-show-submit {
-    text-decoration: none;
-}
-
-.wagtailreview-respond .js-show-submit:hover {
-    background: #5a898a;
-}
-
-
-.wagtailreview-respond .js-show-submit:after {
-    content: " \25bc";
-    font-size: .75em;
-    padding-left: 5px;
 }
 
 .wagtailreview-respond .js-icon-up:after {
