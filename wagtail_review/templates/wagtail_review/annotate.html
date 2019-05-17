@@ -13,7 +13,7 @@
                 <span>Submit your review</span>
                 <span class="wagtail-icon wagtail-icon-wagtail"></span>
             </a>
-            <form id="wagtailreview-respond-form" action="{{ reviewer.get_respond_url }}" method="POST">
+            <form class="wagtailreview-respond-form" id="wagtailreview-respond-form" action="{{ reviewer.get_respond_url }}" method="POST">
                 {% csrf_token %}
                 {% include "wagtail_review/response_form_fields.html" %}
             </form>

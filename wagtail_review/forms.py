@@ -66,5 +66,7 @@ class ResponseForm(forms.ModelForm):
         fields = ['result', 'comment']
         widgets = {
             'result': forms.RadioSelect,
-            'comment': forms.Textarea(attrs={'rows': 6, 'cols': 50}),
+            'comment': forms.Textarea(attrs={
+                'placeholder': 'Enter your comments',
+            }),
         }
