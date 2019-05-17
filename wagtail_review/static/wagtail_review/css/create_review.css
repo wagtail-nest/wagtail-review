@@ -1,9 +1,35 @@
 .reviewer-autocomplete {
-    width: 90%;
     margin-right: 8px;
     vertical-align: middle;
+    width: 90%;
 }
 
-#id_create_review-reviewer_form_container li {
-    list-style-type: disc;
+.wagtailreview-reviewer-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.wagtailreview-reviewer-list li {
+    margin: 6px 0;
+}
+
+.wagtailreview-reviewer-list li span {
+    cursor: default;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.wagtailreview-reviewer-list li:not(:last-child) {
+    margin-right: 16px;
+}
+
+.wagtailreview-reviewer-list .icon {
+    color: #d9d9d9;
+    font-size: 16px;
+}
+
+.wagtailreview-reviewer-list .icon:hover,
+.wagtailreview-reviewer-list .icon:focus {
+    color: #cd3238;
 }
