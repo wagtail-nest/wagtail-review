@@ -4,6 +4,7 @@ import string
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Case, Value, When
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.functional import cached_property
@@ -58,8 +59,25 @@ class BaseReview(models.Model):
         Return a queryset of pages which have reviews, for which the user has edit permission
         """
         user_perms = UserPagePermissionsProxy(user)
-        reviewed_pages = cls.objects.values_list('page_revision__page_id', flat=True).distinct()
-        return user_perms.editable_pages().filter(pk__in=reviewed_pages)
+        reviewed_pages = (
+            cls.objects
+            .order_by('-created_at')
+            .values_list('page_revision__page_id', 'created_at')
+        )
+        # Annotate datetime when a review was last created for this page
+        last_review_requested_at = Case(
+            *[
+                When(pk=pk, then=Value(created_at))
+                for pk, created_at in reviewed_pages
+            ],
+            output_field=models.DateTimeField(),
+        )
+        return (
+            user_perms.editable_pages()
+            .filter(pk__in=(page[0] for page in reviewed_pages))
+            .annotate(last_review_requested_at=last_review_requested_at)
+            .order_by('-last_review_requested_at')
+        )
 
     class Meta:
         abstract = True

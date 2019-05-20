@@ -98,7 +98,7 @@ class DashboardView(generic.IndexView):
     context_object_name = 'pages'
 
     def get_queryset(self):
-        return Review.get_pages_with_reviews_for_user(self.request.user).specific()
+        return Review.get_pages_with_reviews_for_user(self.request.user)
 
 
 class AuditTrailView(DetailView):
