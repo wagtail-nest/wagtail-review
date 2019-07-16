@@ -15,12 +15,6 @@ class TestReviewerModel(TestCase):
         self.revision = self.homepage.save_revision()
         self.review = Review.objects.create(page_revision=self.revision, submitter=User.objects.first())
 
-    def test_tokens_are_assigned(self):
-        """Test that response_token and view_token are populated on save"""
-        reviewer = Reviewer.objects.create(review=self.review, email='bob@example.com')
-        self.assertRegexpMatches(reviewer.response_token, r'^\w{16}$')
-        self.assertRegexpMatches(reviewer.view_token, r'^\w{16}$')
-
     def test_validate_email_or_user_required(self):
         reviewer = Reviewer(review=self.review)
         with self.assertRaises(ValidationError):
@@ -36,20 +30,20 @@ class TestReviewerModel(TestCase):
         reviewer = Reviewer.objects.create(review=self.review, email='bob@example.com')
         self.assertEqual(
             reviewer.get_respond_url(),
-            '/review/respond/%d/%s/' % (reviewer.id, reviewer.response_token)
+            '/review/respond/%d/%s/' % (reviewer.id, reviewer.get_token(enable_comments=True))
         )
         self.assertEqual(
             reviewer.get_respond_url(absolute=True),
-            'http://test.local/review/respond/%d/%s/' % (reviewer.id, reviewer.response_token)
+            'http://test.local/review/respond/%d/%s/' % (reviewer.id, reviewer.get_token(enable_comments=True))
         )
 
     def test_get_view_url(self):
         reviewer = Reviewer.objects.create(review=self.review, email='bob@example.com')
         self.assertEqual(
             reviewer.get_view_url(),
-            '/review/view/%d/%s/' % (reviewer.id, reviewer.view_token)
+            '/review/view/%d/%s/' % (reviewer.id, reviewer.get_token())
         )
         self.assertEqual(
             reviewer.get_view_url(absolute=True),
-            'http://test.local/review/view/%d/%s/' % (reviewer.id, reviewer.view_token)
+            'http://test.local/review/view/%d/%s/' % (reviewer.id, reviewer.get_token())
         )

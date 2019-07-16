@@ -1,6 +1,9 @@
 import random
 import string
 
+import jwt
+from jwt.exceptions import InvalidTokenError
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -88,22 +91,10 @@ class Review(BaseReview):
         swappable = swapper.swappable_setting('wagtail_review', 'Review')
 
 
-def generate_token():
-    return ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.digits) for _ in range(16))
-
-
 class Reviewer(models.Model):
     review = models.ForeignKey(swapper.get_model_name('wagtail_review', 'Review'), related_name='reviewers', on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE, related_name='+')
     email = models.EmailField(blank=True)
-    response_token = models.CharField(
-        max_length=32, editable=False,
-        help_text="Secret token this user must supply to be allowed to respond to the review"
-    )
-    view_token = models.CharField(
-        max_length=32, editable=False,
-        help_text="Secret token this user must supply to be allowed to view the page revision being reviewed"
-    )
 
     def clean(self):
         if self.user is None and not self.email:
@@ -115,22 +106,46 @@ class Reviewer(models.Model):
     def get_name(self):
         return self.user.get_full_name() if self.user else self.email
 
-    def save(self, **kwargs):
-        if not self.response_token:
-            self.response_token = generate_token()
-        if not self.view_token:
-            self.view_token = generate_token()
+    def get_token(self, enable_comments=False):
+        # Use a code to make tokens shorter.
+        # Prefixes:
+        #  rv - Reviewer
+        #  cm - Commenting
+        #
+        # Suffixes:
+        #  id - Identifier
+        #  nm - Name (for display purposes)
+        #  en - Enabled
+        payload = {
+            'rvid': self.id,
+            'rvnm': self.get_name(),
+            'cmen': enable_comments,
+        }
 
-        super().save(**kwargs)
+        return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
+
+    def verify_token(self, token, require_comments=False):
+        try:
+            decoded = jwt.decode(token, settings.SECRET_KEY, algorithm='HS256')
+        except InvalidTokenError:
+            return False
+
+        if decoded['rvid'] != self.id:
+            return False
+
+        if require_comments and not decoded['cmen']:
+            return False
+
+        return True
 
     def get_respond_url(self, absolute=False):
-        url = reverse('wagtail_review:respond', args=[self.id, self.response_token])
+        url = reverse('wagtail_review:respond', args=[self.id, self.get_token(enable_comments=True)])
         if absolute:
             url = settings.BASE_URL + url
         return url
 
     def get_view_url(self, absolute=False):
-        url = reverse('wagtail_review:view', args=[self.id, self.view_token])
+        url = reverse('wagtail_review:view', args=[self.id, self.get_token()])
         if absolute:
             url = settings.BASE_URL + url
         return url
