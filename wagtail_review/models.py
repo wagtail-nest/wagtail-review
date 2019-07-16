@@ -37,11 +37,27 @@ class BaseReview(models.Model):
     status = models.CharField(max_length=30, default='open', choices=REVIEW_STATUS_CHOICES, editable=False)
     submitter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+', editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    assignees = models.ManyToManyField('Reviewer', related_name='+')
 
     def send_request_emails(self):
         # send request emails to all reviewers except the reviewer record for the user submitting the request
-        for reviewer in self.reviewers.exclude(user=self.submitter):
-            reviewer.send_request_email()
+        for reviewer in self.assignees.exclude(user=self.submitter):
+            email_address = reviewer.get_email_address()
+
+            context = {
+                'email': email_address,
+                'user': reviewer.user,
+                'review': self,
+                'page': self.revision_as_page,
+                'submitter': self.submitter,
+                'respond_url': reviewer.get_respond_url(self.page_revision_id, absolute=True),
+                'view_url': reviewer.get_view_url(self.page_revision_id, absolute=True),
+            }
+
+            email_subject = render_to_string('wagtail_review/email/request_review_subject.txt', context).strip()
+            email_content = render_to_string('wagtail_review/email/request_review.txt', context).strip()
+
+            send_mail(email_subject, email_content, [email_address])
 
     @cached_property
     def revision_as_page(self):
@@ -54,7 +70,7 @@ class BaseReview(models.Model):
         return Response.objects.filter(reviewer__review=self).order_by('created_at').select_related('reviewer')
 
     def get_non_responding_reviewers(self):
-        return self.reviewers.filter(responses__isnull=True).exclude(user=self.submitter)
+        return self.assignees.filter(responses__isnull=True).exclude(user=self.submitter)
 
     @classmethod
     def get_pages_with_reviews_for_user(cls, user):
@@ -91,8 +107,15 @@ class Review(BaseReview):
         swappable = swapper.swappable_setting('wagtail_review', 'Review')
 
 
+class Share(models.Model):
+    """
+    Grants permission for an external user to access draft revisions of a page
+    """
+    email = models.EmailField()
+    page = models.ForeignKey('wagtailcore.Page', on_delete=models.CASCADE, related_name='wagtailreview_shares')
+
+
 class Reviewer(models.Model):
-    review = models.ForeignKey(swapper.get_model_name('wagtail_review', 'Review'), related_name='reviewers', on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE, related_name='+')
     email = models.EmailField(blank=True)
 
@@ -101,16 +124,17 @@ class Reviewer(models.Model):
             raise ValidationError("A reviewer must have either an email address or a user account")
 
     def get_email_address(self):
-        return self.email or self.user.email
+        return self.user.email if self.user else self.email
 
     def get_name(self):
         return self.user.get_full_name() if self.user else self.email
 
-    def get_token(self, enable_comments=False):
+    def get_token(self, page_revision_id, enable_comments=False):
         # Use a code to make tokens shorter.
         # Prefixes:
         #  rv - Reviewer
         #  cm - Commenting
+        #  pr - Page Revision
         #
         # Suffixes:
         #  id - Identifier
@@ -119,12 +143,13 @@ class Reviewer(models.Model):
         payload = {
             'rvid': self.id,
             'rvnm': self.get_name(),
+            'prid': page_revision_id,
             'cmen': enable_comments,
         }
 
         return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
 
-    def verify_token(self, token, require_comments=False):
+    def verify_token(self, token, page_revision_id, require_comments=False):
         try:
             decoded = jwt.decode(token, settings.SECRET_KEY, algorithm='HS256')
         except InvalidTokenError:
@@ -133,44 +158,31 @@ class Reviewer(models.Model):
         if decoded['rvid'] != self.id:
             return False
 
+        if decoded['prid'] !=page_revision_id:
+            return False
+
         if require_comments and not decoded['cmen']:
             return False
 
         return True
 
-    def get_respond_url(self, absolute=False):
-        url = reverse('wagtail_review:respond', args=[self.id, self.get_token(enable_comments=True)])
+    def get_respond_url(self, page_revision_id, absolute=False):
+        url = reverse('wagtail_review:respond', args=[self.id, self.get_token(page_revision_id, enable_comments=True)])
         if absolute:
             url = settings.BASE_URL + url
         return url
 
-    def get_view_url(self, absolute=False):
-        url = reverse('wagtail_review:view', args=[self.id, self.get_token()])
+    def get_view_url(self, page_revision_id, absolute=False):
+        url = reverse('wagtail_review:view', args=[self.id, self.get_token(page_revision_id)])
         if absolute:
             url = settings.BASE_URL + url
         return url
-
-    def send_request_email(self):
-        email_address = self.get_email_address()
-
-        context = {
-            'email': email_address,
-            'user': self.user,
-            'review': self.review,
-            'page': self.review.revision_as_page,
-            'submitter': self.review.submitter,
-            'respond_url': self.get_respond_url(absolute=True),
-            'view_url': self.get_view_url(absolute=True),
-        }
-
-        email_subject = render_to_string('wagtail_review/email/request_review_subject.txt', context).strip()
-        email_content = render_to_string('wagtail_review/email/request_review.txt', context).strip()
-
-        send_mail(email_subject, email_content, [email_address])
 
 
 class Comment(models.Model):
+    page_revision = models.ForeignKey('wagtailcore.PageRevision', related_name='wagtailreview_comments', on_delete=models.CASCADE)
     reviewer = models.ForeignKey(Reviewer, related_name='comments', on_delete=models.CASCADE)
+    review = models.ForeignKey(swapper.get_model_name('wagtail_review', 'Review'), null=True, related_name='comments', on_delete=models.SET_NULL)
     quote = models.TextField(blank=True)
     text = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -216,6 +228,7 @@ RESULT_CHOICES = (
 
 
 class Response(models.Model):
+    review = models.ForeignKey(swapper.get_model_name('wagtail_review', 'Review'), related_name='responses', on_delete=models.CASCADE)
     reviewer = models.ForeignKey(Reviewer, related_name='responses', on_delete=models.CASCADE)
     result = models.CharField(choices=RESULT_CHOICES, max_length=10, blank=False, default=None)
     comment = models.TextField()

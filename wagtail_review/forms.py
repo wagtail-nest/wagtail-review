@@ -49,13 +49,12 @@ class BaseReviewerFormSet(forms.BaseInlineFormSet):
 
 
 ReviewerFormSet = forms.inlineformset_factory(
-    Review, Reviewer,
-    fields=['user', 'email'],
+    Review, Review.assignees.through,
+    fields=['reviewer'],
     formset=BaseReviewerFormSet,
     extra=0,
     widgets={
-        'user': forms.HiddenInput,
-        'email': forms.HiddenInput,
+        'reviewer': forms.HiddenInput,
     }
 )
 

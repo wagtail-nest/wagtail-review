@@ -14,6 +14,7 @@ from wagtail.core import hooks
 
 from wagtail_review import admin_urls
 from wagtail_review.forms import get_review_form_class, ReviewerFormSet
+from wagtail_review.models import Reviewer
 
 Review = swapper.load_model('wagtail_review', 'Review')
 
@@ -100,7 +101,8 @@ def handle_submit_for_review(request, page):
         reviewer_formset.save()
 
         # create a reviewer record for the current user
-        review.reviewers.create(user=review.submitter)
+        reviewer, created = Reviewer.objects.get_or_create(user=review.submitter)
+        review.assignees.add(reviewer)
 
         review.send_request_emails()
 
