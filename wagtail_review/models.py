@@ -4,16 +4,167 @@ import string
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Case, Value, When
+from django.db.models import Case, Value, When, Q
+from django.db.models.constraints import CheckConstraint, UniqueConstraint
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
 import swapper
+import jwt
 
 from wagtail.admin.utils import send_mail
 from wagtail.core.models import UserPagePermissionsProxy
+
+
+class ExternalUser(models.Model):
+    """
+    Represents an external user who doesn't have an account but may need to view
+    draft revisions of pages and comment on them.
+    """
+    email = models.EmailField()
+
+
+class Share(models.Model):
+    """
+    Grants access to draft revisions of a page to an external user.
+    """
+    external_user = models.ForeignKey(ExternalUser, on_delete=models.CASCADE, related_name='shares')
+    page = models.ForeignKey('wagtailcore.Page', on_delete=models.CASCADE, related_name='wagtailreview_shares')
+    shared_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+')
+    shared_at = models.DateTimeField(auto_now_add=True)
+    can_comment = models.BooleanField(default=False)
+    first_accessed_at = models.DateTimeField(null=True)
+    last_accessed_at = models.DateTimeField(null=True)
+    expires_at = models.DateTimeField(null=True)
+
+    def log_access(self):
+        """
+        Updates the *_accessed_at fields
+        """
+        self.last_accessed_at = timezone.now()
+
+        if self.first_accessed_at is None:
+            self.first_accessed_at = self.last_accessed_at
+
+        self.save(update_fields=['first_accessed_at', 'last_accessed_at'])
+
+    class Meta:
+        unique_together = [
+            ('external_user', 'page'),
+        ]
+
+
+class User(models.Model):
+    """
+    This model represents a union of the AUTH_USER_MODEL and ExternalUser models.
+
+    It's intended as a place to reference in ForeignKeys in places where either an internal or external
+    user could be specified.
+    """
+    internal = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE, related_name='+')
+    external = models.ForeignKey(ExternalUser, null=True, on_delete=models.CASCADE, related_name='+')
+
+    def get_name(self):
+        if self.internal:
+            return self.internal.get_full_name() or self.internal.email
+        else:
+            return self.external.email
+
+    def page_perms(self, page_id):
+        return UserPagePermissions(self, page_id)
+
+    def get_review_token(self, page_revision_id):
+        payload = {
+            'usid': self.id,  # User ID
+            'prid': page_revision_id,  # Page revision ID
+        }
+
+        return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
+
+    class Meta:
+        constraints = [
+            # Either internal or external must be set and not both
+            CheckConstraint(
+                check=Q(internal__isnull=False, external__isnull=True) |
+                      Q(internal__isnull=True, external__isnull=False),
+                name='either_internal_or_external'
+            ),
+
+            # Internal must be unique if it is not null
+            UniqueConstraint(fields=['internal'], condition=Q(internal__isnull=False), name='unique_internal'),
+
+            # External must be unique if it is not null
+            UniqueConstraint(fields=['external'], condition=Q(external__isnull=False), name='unique_external'),
+        ]
+
+
+class UserPagePermissions:
+    def __init__(self, user, page_id):
+        self.user = user
+        self.page_id = page_id
+
+    @cached_property
+    def share(self):
+        if self.user.external_id:
+            return Share.objects.filter(external_user_id=self.user.external_id, page_id=self.page_id).first()
+
+    def can_view(self):
+        """
+        Returns True if the user can view the page
+        """
+        if self.user.external_id:
+            if self.share is None:
+                # Not shared with this user before
+                return False
+
+            if self.share.expires_at < timezone.now():
+                # Share has expired
+                return False
+
+        return True
+
+    def can_comment(self):
+        """
+        Returns True if the user can comment on the page
+        """
+        if not self.can_view():
+            return False
+
+        if self.user.external_id and not self.share.can_comment:
+            # User can view but not comment
+            return False
+
+        return True
+
+
+class Comment(models.Model):
+    page_revision = models.ForeignKey('wagtailcore.PageRevision', on_delete=models.CASCADE, related_name='wagtailreview_comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    quote = models.TextField()
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    resolved_at = models.DateTimeField(null=True)
+
+    content_path = models.TextField()
+    start_xpath = models.TextField()
+    start_offset = models.IntegerField()
+    end_xpath = models.TextField()
+    end_offset = models.IntegerField()
+
+
+class CommentReply(models.Model):
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='replies')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comment_replies')
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+# OLD MODELS BELOW
 
 
 # make the setting name WAGTAILREVIEW_REVIEW_MODEL rather than WAGTAIL_REVIEW_REVIEW_MODEL
@@ -104,6 +255,22 @@ class Reviewer(models.Model):
         max_length=32, editable=False,
         help_text="Secret token this user must supply to be allowed to view the page revision being reviewed"
     )
+
+    # TEMPORARY
+    def into_user(self):
+        if self.user:
+            user, created = User.objects.get_or_create(
+                internal=self.user,
+            )
+            return user
+        else:
+            external_user, created = ExternalUser.get_or_create(
+                email=self.email,
+            )
+            user, created = User.objects.get_or_create(
+                external=external_user,
+            )
+            return user
 
     def clean(self):
         if self.user is None and not self.email:
