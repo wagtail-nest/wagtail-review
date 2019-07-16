@@ -161,21 +161,6 @@ class Annotation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def as_json_data(self):
-        return {
-            'id': self.id,
-            'annotator_schema_version': 'v1.0',
-            'created': self.created_at.isoformat(),
-            'updated': self.updated_at.isoformat(),
-            'text': self.text,
-            'quote': self.quote,
-            'user': {
-                'id': self.reviewer.id,
-                'name': self.reviewer.get_name(),
-            },
-            'ranges': [r.as_json_data() for r in self.ranges.all()],
-        }
-
 
 class AnnotationRange(models.Model):
     annotation = models.ForeignKey(Annotation, related_name='ranges', on_delete=models.CASCADE)
@@ -183,14 +168,6 @@ class AnnotationRange(models.Model):
     start_offset = models.IntegerField()
     end = models.TextField()
     end_offset = models.IntegerField()
-
-    def as_json_data(self):
-        return {
-            'start': self.start,
-            'startOffset': self.start_offset,
-            'end': self.end,
-            'endOffset': self.end_offset,
-        }
 
 
 RESULT_CHOICES = (
