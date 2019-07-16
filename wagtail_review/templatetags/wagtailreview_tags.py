@@ -18,7 +18,7 @@ def wagtailreview(context):
             'show_closed': (reviewer.review.status == 'closed'),
             'allow_responses': (review_mode == 'respond' and reviewer.review.status != 'closed'),
             'reviewer': reviewer,
-            'token': reviewer.response_token,
+            'token': reviewer.get_token(enable_comments=True),
             'response_form': ResponseForm()
         }
     elif review_mode == 'view':
@@ -28,7 +28,7 @@ def wagtailreview(context):
             'allow_annotations': False,
             'allow_responses': False,
             'reviewer': reviewer,
-            'token': reviewer.view_token
+            'token': reviewer.get_token()
         }
 
     else:

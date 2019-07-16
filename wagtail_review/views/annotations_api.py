@@ -17,9 +17,9 @@ def _check_reviewer_credentials(request):
     except (KeyError, Reviewer.DoesNotExist):
         raise PermissionDenied
 
-    if (mode == 'respond' or mode == 'comment') and token == reviewer.response_token:
+    if (mode == 'respond' or mode == 'comment') and reviewer.verify_token(token, require_comments=True):
         pass
-    elif mode == 'view' and token == reviewer.view_token:
+    elif mode == 'view' and reviewer.verify_token(token):
         pass
     else:
         raise PermissionDenied

@@ -32,7 +32,7 @@ class TestFrontendViews(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_view(self):
-        response = self.client.get('/review/view/%d/%s/' % (self.reviewer.id, self.reviewer.view_token))
+        response = self.client.get('/review/view/%d/%s/' % (self.reviewer.id, self.reviewer.get_token()))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "<h1>Simple page submitted</h1>")
         self.assertContains(response, "var app = new annotator.App();")
@@ -43,14 +43,14 @@ class TestFrontendViews(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_respond_view(self):
-        response = self.client.get('/review/respond/%d/%s/' % (self.reviewer.id, self.reviewer.response_token))
+        response = self.client.get('/review/respond/%d/%s/' % (self.reviewer.id, self.reviewer.get_token(enable_comments=True)))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "<h1>Simple page submitted</h1>")
         self.assertContains(response, "var app = new annotator.App();")
         self.assertContains(response, "app.include(annotator.ui.main,")
 
     def test_respond_view_post_not_authenticated_user(self):
-        response = self.client.post('/review/respond/%d/%s/' % (self.reviewer.id, self.reviewer.response_token),
+        response = self.client.post('/review/respond/%d/%s/' % (self.reviewer.id, self.reviewer.get_token(enable_comments=True)),
                                     data={'result': 'approve', 'comment': 'comment'})
         self.assertEqual(response.status_code, 200)
         review_response = self.reviewer.review.get_responses().last()
@@ -59,7 +59,7 @@ class TestFrontendViews(TestCase):
 
     def test_respond_view_post_authenticated_user(self):
         self.client.login(username='admin', password='password')
-        response = self.client.post('/review/respond/%d/%s/' % (self.reviewer.id, self.reviewer.response_token),
+        response = self.client.post('/review/respond/%d/%s/' % (self.reviewer.id, self.reviewer.get_token(enable_comments=True)),
                                     data={'result': 'approve', 'comment': 'comment'})
         self.client.logout()
         self.assertEqual(response.status_code, 302)
