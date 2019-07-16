@@ -14,7 +14,7 @@ def wagtailreview(context):
     if review_mode == 'respond' or review_mode == 'comment':
         return {
             'mode': review_mode,
-            'allow_annotations': (reviewer.review.status != 'closed'),
+            'allow_comments': (reviewer.review.status != 'closed'),
             'show_closed': (reviewer.review.status == 'closed'),
             'allow_responses': (review_mode == 'respond' and reviewer.review.status != 'closed'),
             'reviewer': reviewer,
@@ -25,7 +25,7 @@ def wagtailreview(context):
         return {
             'mode': review_mode,
             'show_closed': False,
-            'allow_annotations': False,
+            'allow_comments': False,
             'allow_responses': False,
             'reviewer': reviewer,
             'token': reviewer.get_token()

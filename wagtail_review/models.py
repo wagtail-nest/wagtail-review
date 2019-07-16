@@ -47,8 +47,8 @@ class BaseReview(models.Model):
     def revision_as_page(self):
         return self.page_revision.as_page_object()
 
-    def get_annotations(self):
-        return Annotation.objects.filter(reviewer__review=self).prefetch_related('ranges')
+    def get_comments(self):
+        return Comment.objects.filter(reviewer__review=self).prefetch_related('page_locations')
 
     def get_responses(self):
         return Response.objects.filter(reviewer__review=self).order_by('created_at').select_related('reviewer')
@@ -169,8 +169,8 @@ class Reviewer(models.Model):
         send_mail(email_subject, email_content, [email_address])
 
 
-class Annotation(models.Model):
-    reviewer = models.ForeignKey(Reviewer, related_name='annotations', on_delete=models.CASCADE)
+class Comment(models.Model):
+    reviewer = models.ForeignKey(Reviewer, related_name='comments', on_delete=models.CASCADE)
     quote = models.TextField(blank=True)
     text = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -188,12 +188,13 @@ class Annotation(models.Model):
                 'id': self.reviewer.id,
                 'name': self.reviewer.get_name(),
             },
-            'ranges': [r.as_json_data() for r in self.ranges.all()],
+            'ranges': [r.as_json_data() for r in self.page_locations.all()],
         }
 
 
-class AnnotationRange(models.Model):
-    annotation = models.ForeignKey(Annotation, related_name='ranges', on_delete=models.CASCADE)
+class CommentPageLocation(models.Model):
+    comment = models.ForeignKey(Comment, related_name='page_locations', on_delete=models.CASCADE)
+    content_path = models.TextField(blank=True)
     start = models.TextField()
     start_offset = models.IntegerField()
     end = models.TextField()
