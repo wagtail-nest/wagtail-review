@@ -1,5 +1,24 @@
 {% load static %}
 
-{% if mode %}
+<div id="comments">
 
+</div>
+
+{% if mode %}
+    <link rel="stylesheet" href="{% static 'wagtailadmin/css/userbar.css' %}">
+    <script src="{% static 'wagtail_review/js/vendor/annotator-2.0.0a3.min.js' %}"></script>
+    <script src="{% static 'wagtail_review/js/wagtail-review-frontend.js' %}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var commentsElement = document.getElementById('comments');
+            {% url 'wagtail_review:api:base' as api_base_url %}
+            var commentsApi = new WagtailReview.APIClient('{{ api_base_url|escapejs }}', '{{ token|escapejs }}');
+            WagtailReview.initCommentsApp(commentsElement, commentsApi, function (addAnnotatableSection) {
+                for (var element of document.querySelectorAll('[data-contentpath-field]')) {
+                    addAnnotatableSection(element.dataset.contentpathField, element);
+                }
+            }, {% if mode == 'respond' %}true{% else %}false{% endif %});
+        });
+    </script>
 {% endif %}
