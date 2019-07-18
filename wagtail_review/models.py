@@ -264,7 +264,7 @@ class Reviewer(models.Model):
             )
             return user
         else:
-            external_user, created = ExternalUser.get_or_create(
+            external_user, created = ExternalUser.objects.get_or_create(
                 email=self.email,
             )
             user, created = User.objects.get_or_create(
