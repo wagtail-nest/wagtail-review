@@ -13,6 +13,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'swapper>=1.1,<1.2',
+        'pyjwt>1.7,<2.0',
     ],
     license='BSD',
     long_description="An extension for Wagtail allowing pages to be submitted for review (including to non-Wagtail users) prior to publication",
