@@ -267,6 +267,15 @@ class Reviewer(models.Model):
             external_user, created = ExternalUser.objects.get_or_create(
                 email=self.email,
             )
+            share, created = Share.objects.get_or_create(
+                external_user=external_user,
+                page_id=self.review.page_revision.page_id,
+                defaults={
+                    'shared_by_id': self.review.submitter_id,
+                    'shared_at': self.review.created_at,
+                    'can_comment': True,
+                }
+            )
             user, created = User.objects.get_or_create(
                 external=external_user,
             )
