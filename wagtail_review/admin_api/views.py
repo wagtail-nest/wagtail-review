@@ -54,7 +54,7 @@ class PageShares(AdminAPIViewMixin, generics.ListCreateAPIView):
             expires_at=serializer.data.get('expires_at'),
         )
 
-        # share.send_share_email()
+        share.send_share_email()
 
         serializer = serializers.ShareSerializer(share)
 

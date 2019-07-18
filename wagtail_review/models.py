@@ -40,6 +40,20 @@ class Share(models.Model):
     last_accessed_at = models.DateTimeField(null=True)
     expires_at = models.DateTimeField(null=True)
 
+    def send_share_email(self):
+        """
+        Emails the user with the review link
+        """
+        review_url = 'TODO'
+        email_address = self.external_user.email
+
+        email_body = render_to_string('wagtail_review/email/share.txt', {
+            'page': self.page,
+            'review_url': review_url,
+        })
+
+        send_mail("A page has been shared with you", email_body, [email_address])
+
     def log_access(self):
         """
         Updates the *_accessed_at fields
