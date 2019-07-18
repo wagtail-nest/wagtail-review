@@ -11,9 +11,15 @@ import { initTabs } from './utils/tabs';
 import { showShareModal, hideShareModal, putShare } from './actions/share';
 import { showComments, loadComments, hideComments } from './actions/comments';
 
-declare var window: any;
+declare let window: any;
 
 document.addEventListener('DOMContentLoaded', () => {
+    const shareStore = createStore(shareReducer);
+    const commentsStore = createStore(commentsReducer);
+    const api = new APIClient(
+        window.wagtailPageId /* Injected by GuacamoleMenuItem in review/wagtail_hooks.py */
+    );
+
     initTabs([
         {
             text: 'Share',
@@ -36,21 +42,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('keydown', (e: KeyboardEvent) => {
         // Close share modal and comments when esc is pressed
-        if (e.key == 'Escape') {
+        if (e.key === 'Escape') {
             shareStore.dispatch(hideShareModal());
             commentsStore.dispatch(hideComments());
         }
     });
 
-    let shareStore = createStore(shareReducer);
-    let commentsStore = createStore(commentsReducer);
-    let api = new APIClient(
-        window.wagtailPageId /* Injected by GuacamoleMenuItem in review/wagtail_hooks.py */
-    );
-
     // Load initial shares
     api.getShares().then(shares => {
-        for (let share of shares) {
+        for (const share of shares) {
             shareStore.dispatch(putShare(Share.fromApi(share)));
         }
     });
@@ -61,10 +61,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Render share UI
-    let shareContainer = document.createElement('div');
+    const shareContainer = document.createElement('div');
     document.body.append(shareContainer);
 
-    let renderShare = () => {
+    const renderShare = () => {
         ReactDOM.render(
             <ShareModal
                 api={api}
@@ -79,17 +79,17 @@ document.addEventListener('DOMContentLoaded', () => {
     shareStore.subscribe(renderShare);
 
     // Render comments UI
-    let commentsButton = document.getElementById('comments-button');
+    const commentsButton = document.getElementById('comments-button');
     if (commentsButton instanceof HTMLElement) {
-        let commentsContainer = document.createElement('div');
+        const commentsContainer = document.createElement('div');
         commentsButton.append(commentsContainer);
 
         commentsContainer.style.position = 'relative';
 
-        let commentsButtonATag = commentsButton.querySelector('a');
+        const commentsButtonATag = commentsButton.querySelector('a');
 
-        let renderComments = () => {
-            let state = commentsStore.getState();
+        const renderComments = () => {
+            const state = commentsStore.getState();
             ReactDOM.render(
                 <Comments
                     api={api}
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update number displayed on comments tab
             if (commentsButtonATag instanceof HTMLElement) {
-                let numUnresolvedComments = state.comments.filter(comment => !comment.isResolved).length;
+                const numUnresolvedComments = state.comments.filter(comment => !comment.isResolved).length;
 
                 if (numUnresolvedComments > 0) {
                     commentsButtonATag.classList.add('errors');

@@ -1,11 +1,11 @@
 function createTab(text: string, id: string|undefined, onClick: (e: MouseEvent) => void) {
-    let liElement = document.createElement('li');
+    const liElement = document.createElement('li');
 
     if (id) {
         liElement.id = id;
     }
 
-    let aElement = liElement.appendChild(document.createElement('a'));
+    const aElement = liElement.appendChild(document.createElement('a'));
     aElement.href = '#';
     aElement.addEventListener(
         'click',
@@ -28,18 +28,18 @@ interface TabConfig {
 }
 
 export function initTabs(tabs: TabConfig[]) {
-    let tabsElement = document.querySelector('ul.tab-nav');
+    const tabsElement = document.querySelector('ul.tab-nav');
     if (!(tabsElement instanceof HTMLUListElement)) {
         console.error('[review] Cannot locate tabs element in DOM');
         return;
     }
     tabsElement.style.position = 'relative';
 
-    let container = document.createElement('div');
+    const container = document.createElement('div');
     container.style.position = 'absolute';
     container.style.right = '50px';
 
-    for (let tab of tabs) {
+    for (const tab of tabs) {
         container.appendChild(createTab(tab.text, tab.id, tab.onClick));
     }
 

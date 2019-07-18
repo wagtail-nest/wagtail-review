@@ -5,8 +5,11 @@ import { ShareApi } from '../api';
 
 export class Share {
     id: number;
+
     email: string;
+
     accessedAt: number | null;
+
     expiresAt: number | null;
 
     constructor(
@@ -55,21 +58,22 @@ export function reducer(state: State | undefined, action: actions.Action) {
         }
 
         case actions.PUT_SHARE: {
-            let shareIndex = null;
-            for (let i in state.shares) {
-                let share = state.shares[i];
+            let shareIndex: number | null = null;
+            let i = 0;
+            for (const share of state.shares) {
                 if (share.id == action.share.id) {
                     shareIndex = i;
                     break;
                 }
+                i++;
             }
 
-            let newShares = state.shares.slice();
+            const newShares = state.shares.slice();
 
             if (shareIndex == null) {
                 newShares.push(action.share);
             } else {
-                newShares[parseInt(shareIndex)] = action.share;
+                newShares[shareIndex] = action.share;
             }
 
             state = Object.assign({}, state, { shares: newShares });
@@ -78,26 +82,25 @@ export function reducer(state: State | undefined, action: actions.Action) {
         }
 
         case actions.DELETE_SHARE: {
-            let shareIndex = null;
-            for (let i in state.shares) {
-                let share = state.shares[i];
+            let shareIndex: number | null = null;
+            let i = 0;
+            for (const share of state.shares) {
                 if (share.id == action.shareId) {
                     shareIndex = i;
                     break;
                 }
+                i++;
             }
 
             if (shareIndex != null) {
-                let newShares = state.shares.slice();
-                newShares.splice(parseInt(shareIndex), 1);
+                const newShares = state.shares.slice();
+                newShares.splice(shareIndex, 1);
                 state = Object.assign({}, state, { shares: newShares });
             }
 
             break;
         }
     }
-
-    console.log(action);
 
     return state;
 }

@@ -8,25 +8,31 @@ interface Props extends Modal.Props {
 }
 
 export default class WagtailReactModal extends React.Component<Props> {
+    componentDidMount() {
+        Modal.setAppElement('div.wrapper');
+    }
+
     render() {
-        let onClickClose = (e: React.MouseEvent) => {
+        const onClickClose = (e: React.MouseEvent) => {
             e.preventDefault();
 
-            if (this.props.onClickCloseButton) {
-                this.props.onClickCloseButton();
+            const { onClickCloseButton } = this.props;
+
+            if (onClickCloseButton) {
+                onClickCloseButton();
             }
         };
 
-        let defaultProps = {
+        const defaultProps = {
             className: 'react-modal__dialog',
             overlayClassName: 'react-modal'
         };
 
-        let props: Modal.Props = Object.assign(defaultProps, this.props);
+        const props: Modal.Props = Object.assign(defaultProps, this.props);
 
-        let oldOnAfterOpen = props.onAfterOpen;
+        const oldOnAfterOpen = props.onAfterOpen;
         props.onAfterOpen = () => {
-            let backdrop = document.body.appendChild(
+            const backdrop = document.body.appendChild(
                 document.createElement('div')
             );
             backdrop.classList.add('js-wagtail-react-modal-backdrop');
@@ -38,9 +44,9 @@ export default class WagtailReactModal extends React.Component<Props> {
             }
         };
 
-        let oldOnAfterClose = props.onAfterClose;
+        const oldOnAfterClose = props.onAfterClose;
         props.onAfterClose = () => {
-            let backdrop = document.querySelector(
+            const backdrop = document.querySelector(
                 'body > div.js-wagtail-react-modal-backdrop'
             );
 
@@ -52,6 +58,8 @@ export default class WagtailReactModal extends React.Component<Props> {
                 oldOnAfterClose();
             }
         };
+
+        const { contentLabel, children } = this.props;
 
         return (
             <Modal {...props}>
@@ -71,21 +79,17 @@ export default class WagtailReactModal extends React.Component<Props> {
                                 <div className="left">
                                     <div className="col header-title">
                                         <h1 className="icon icon-share">
-                                            {this.props.contentLabel}
+                                            {contentLabel}
                                         </h1>
                                     </div>
                                 </div>
                             </div>
                         </header>
 
-                        <div className="tab-content">{this.props.children}</div>
+                        <div className="tab-content">{children}</div>
                     </div>
                 </div>
             </Modal>
         );
-    }
-
-    componentDidMount() {
-        Modal.setAppElement('div.wrapper');
     }
 }

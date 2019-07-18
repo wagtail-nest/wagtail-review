@@ -31,8 +31,11 @@ export type CommentReplyMode =
 
 export class CommentReply {
     id: number;
+
     author: Author;
+
     date: number;
+
     text: string;
 
     constructor(id: number, author: Author, date: number, text: string) {
@@ -54,11 +57,17 @@ export class CommentReply {
 
 export class Comment {
     id: number;
+
     isResolved: boolean;
+
     author: Author;
+
     date: number;
+
     text: string;
+
     replies: CommentReply[];
+
     frontendUrl: string;
 
     constructor(
@@ -95,7 +104,7 @@ export class Comment {
 export interface State {
     isOpen: boolean;
     comments: Comment[];
-    showResolvedComments: boolean,
+    showResolvedComments: boolean;
 }
 
 function initialState(): State {
@@ -125,8 +134,6 @@ export function reducer(state: State | undefined, action: actions.Action) {
             break;
         }
     }
-
-    console.log(action);
 
     return state;
 }
