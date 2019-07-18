@@ -120,7 +120,7 @@ class UserPagePermissions:
                 # Not shared with this user before
                 return False
 
-            if self.share.expires_at < timezone.now():
+            if self.share.expires_at is not None and self.share.expires_at < timezone.now():
                 # Share has expired
                 return False
 
