@@ -1,0 +1,90 @@
+$zindex-modal-background: 500;
+
+// Container that the modal scrolls within
+.react-modal {
+    box-sizing: border-box;
+    overflow: auto;
+    overflow-y: scroll;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: $zindex-modal-background;
+
+    // Shell div to position the modal with bottom padding
+    &__dialog {
+        box-sizing: border-box;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0;
+        z-index: ($zindex-modal-background + 10);
+        height: 90%;
+        width: 85%;
+        outline: none;
+
+        &:before {
+            content: '';
+            display: inline-block;
+            height: 100%;
+            vertical-align: middle;
+            margin-right: -0.25em;
+        }
+    }
+
+    // Actual modal
+    &__content {
+        box-sizing: border-box;
+        border-radius: 3px;
+        width: 98.7%;
+        position: relative;
+        background-color: #fff;
+        margin-top: 2em;
+        padding-bottom: 3em;
+        display: inline-block;
+        vertical-align: middle;
+        overflow: hidden;
+    }
+
+    .close {
+        padding: 0;
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        top: 10px;
+        right: 10px;
+        z-index: 1;
+    }
+
+    // Where all modal content resides
+    &__body {
+        position: relative;
+        padding-bottom: 2em;
+
+        header {
+            padding-left: 2em;
+            padding-right: 100px;
+        }
+
+        .header-title {
+            // stylelint-disable-next-line declaration-no-important
+            padding-left: 0 !important;
+            margin-left: -36px;
+        }
+    }
+}
+
+/*
+@include media-breakpoint-up(sm) {
+    .share-modal__dialog {
+        padding: 0 0 2em $menu-width;
+    }
+}
+
+@include media-breakpoint-up(xl) {
+    .share-modal__dialog {
+        max-width: 100em;
+        padding: 0 0 2em;
+    }
+}
+*/

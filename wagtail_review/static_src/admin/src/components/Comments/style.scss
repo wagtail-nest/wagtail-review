@@ -1,0 +1,102 @@
+.comments {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 99;
+    background-color: #fff;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    width: 300px;
+
+    &__show-hide-resolved {
+        box-sizing: border-box;
+        width: 100%;
+        height: 40px;
+        line-height: 40px;
+        font-size: 1.2em;
+        background: #eee;
+        padding-left: 10px;
+
+        input[type="checkbox"] {
+            margin-left: 10px;
+        }
+    }
+
+    ul {
+        padding: 10px;
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+}
+
+// Override Wagtail
+.tab-nav li.comment {
+    margin-left: 0;
+    padding-left: 0;
+    width: 100%;
+}
+
+.comment {
+    display: block;
+    background: white;
+    transition: top 0.5s ease 0s, right 0.5s ease 0s, height 0.5s ease 0s;
+    font-size: 0.9em;
+
+    &:not(:last-child) {
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+
+    &__header-info,
+    &__header-resolved {
+        display: inline-block;
+    }
+
+    &__header-info {
+        h2 {
+            margin-top: 0;
+            margin-bottom: 0;
+            font-weight: bold;
+            color: #555;
+        }
+    }
+
+    &__header-resolved {
+        float: right;
+        white-space: nowrap;
+
+        label {
+            padding-top: 0;
+            width: initial;
+            float: none;
+        }
+
+        input {
+            margin-left: 10px;
+        }
+    }
+
+    &__date {
+        font-size: 0.8em;
+        color: #555;
+        margin: 0;
+    }
+
+    &__text {
+        clear: both;
+        margin: 0;
+        font-size: 1.2em;
+        padding-top: 5px;
+        padding-left: 5px;
+    }
+}
+
+// Has to be separate so it overrides Wagtail
+a.comment__view-on-frontend {
+    display: inline-block;
+    font-size: 0.9em;
+    border-top: none;
+    line-height: initial;
+    margin-top: 0.5em;
+}

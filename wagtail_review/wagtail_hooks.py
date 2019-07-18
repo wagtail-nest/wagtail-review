@@ -1,14 +1,17 @@
+from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import messages as django_messages
 from django.templatetags.static import static
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 import swapper
 
 from wagtail.admin import messages
+from wagtail.admin.action_menu import ActionMenuItem
 from wagtail.admin.menu import MenuItem
 from wagtail.core import hooks
 
@@ -134,3 +137,29 @@ def register_images_menu_item():
         _('Reviews'), reverse('wagtail_review_admin:dashboard'),
         name='reviews', classnames='icon icon-tick', order=1000
     )
+
+
+@hooks.register('insert_editor_js')
+def editor_js():
+    js_files = [
+        'wagtail_review/js/wagtail-review-admin.js',
+    ]
+    js_includes = format_html_join(
+        '\n',
+        '<script src="{0}{1}"></script>',
+        ((settings.STATIC_URL, filename) for filename in js_files)
+    )
+    return js_includes
+
+
+# Inject code into the action menu that tells the UI which page is being viewed
+# This isn't actually a menu item. It's the only way to inject code into the Wagtail
+# editor where we also have the page ID
+class GuacamoleMenuItem(ActionMenuItem):
+    def render_html(self, request, context):
+        return mark_safe(f"<script>window.wagtailPageId = {context['page'].id};</script>")
+
+
+@hooks.register('register_page_action_menu_item')
+def register_guacamole_menu_item():
+    return GuacamoleMenuItem(order=10)

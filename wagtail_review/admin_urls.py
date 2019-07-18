@@ -1,8 +1,9 @@
 from __future__ import absolute_import, unicode_literals
 
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.views.generic import RedirectView
 from wagtail_review.views import admin as admin_views
+from wagtail_review.admin_api import urls as api_urls
 
 app_name = 'wagtail_review'
 
@@ -16,4 +17,5 @@ urlpatterns = [
     url(r'^reviews/(?P<review_id>\d+)/close/$', admin_views.close_review, name='close_review'),
     url(r'^reviews/(?P<review_id>\d+)/close_and_publish/$', admin_views.close_and_publish, name='close_and_publish'),
     url(r'^reviews/(?P<review_id>\d+)/reopen/$', admin_views.reopen_review, name='reopen_review'),
+    url(r'^api/', include(api_urls, namespace='api')),
 ]
