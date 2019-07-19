@@ -66,13 +66,15 @@ ShareModalState
                 <tr>
                     <td>{share.email}</td>
                     <td>
-                        {!share.accessedAt
-                            ? 'Never'
-                            : dateFormat(share.accessedAt)}
+                        {share.accessedAt
+                        ? dateFormat(share.accessedAt)
+                        : 'Never'}
                     </td>
-                    <td>{!share.accessedAt
-                        ? 'Never'
-                        : dateFormat(share.expiresAt)}</td>
+                    <td>
+                        {share.expiresAt
+                            ? dateFormat(share.expiresAt)
+                            : 'Never'}
+                    </td>
                 </tr>
             );
         });
