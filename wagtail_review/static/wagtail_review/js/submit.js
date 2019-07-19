@@ -4,9 +4,9 @@ $(function() {
         /* onload behaviours for the create review form */
 
         var reviewerList = $('#id_create_review-reviewer_form_container');
-        var totalFormsInput = $('#id_create_review_reviewers-TOTAL_FORMS');
+        var totalFormsInput = $('#id_create_review_assignees-TOTAL_FORMS');
         var formCount = parseInt(totalFormsInput.val(), 10);
-        var emptyFormTemplate = document.getElementById('id_create_review_reviewers-EMPTY_FORM_TEMPLATE');
+        var emptyFormTemplate = document.getElementById('id_create_review_assignees-EMPTY_FORM_TEMPLATE');
         if (emptyFormTemplate.innerText) {
             emptyFormTemplate = emptyFormTemplate.innerText;
         } else if (emptyFormTemplate.textContent) {
@@ -14,8 +14,8 @@ $(function() {
         }
 
         function initReviewerDeleteLink(li, formIndex) {
-            $('#id_create_review_reviewers-' + formIndex + '-delete_link').click(function() {
-                $('#id_create_review_reviewers-' + formIndex + '-DELETE').val('1');
+            $('#id_create_review_assignees-' + formIndex + '-delete_link').click(function() {
+                $('#id_create_review_assignees-' + formIndex + '-DELETE').val('1');
                 li.fadeOut('fast');
                 return false;
             });
@@ -26,9 +26,9 @@ $(function() {
                 .replace(/__prefix__/g, formCount)
                 .replace(/<-(-*)\/script>/g, '<$1/script>'));
             reviewerList.append(newFormHtml);
-            $('#id_create_review_reviewers-' + formCount + '-user').val(id);
-            $('#id_create_review_reviewers-' + formCount + '-email').val(email);
-            $('#id_create_review_reviewers-' + formCount + '-label').text(label);
+            $('#id_create_review_assignees-' + formCount + '-user').val(id);
+            $('#id_create_review_assignees-' + formCount + '-email').val(email);
+            $('#id_create_review_assignees-' + formCount + '-label').text(label);
             initReviewerDeleteLink(newFormHtml, formCount);
 
             formCount++;

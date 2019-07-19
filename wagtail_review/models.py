@@ -87,6 +87,12 @@ class User(models.Model):
         else:
             return self.external.email
 
+    def get_email(self):
+        if self.internal:
+            return self.internal.email
+        else:
+            return self.external.email
+
     def page_perms(self, page_id):
         return UserPagePermissions(self, page_id)
 
@@ -187,6 +193,25 @@ class ReviewRequest(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
     assignees = models.ManyToManyField(User)
 
+    def send_request_emails(self):
+        # send request emails to all reviewers except the reviewer record for the user submitting the request
+        for user in self.assignees.all():
+            email = user.get_email()
+
+            context = {
+                'email': email,
+                'user': user,
+                'review_request': self,
+                'page': self.page_revision.as_page_object(),
+                'respond_url': 'TODO',
+                'view_url': 'TODO',
+            }
+
+            email_subject = render_to_string('wagtail_review/email/request_review_subject.txt', context).strip()
+            email_content = render_to_string('wagtail_review/email/request_review.txt', context).strip()
+
+            send_mail(email_subject, email_content, [email])
+
 
 class ReviewResponse(models.Model):
     STATUS_APPROVED = 'approved'
@@ -241,11 +266,6 @@ class BaseReview(models.Model):
         ])
 
         return request
-
-    def send_request_emails(self):
-        # send request emails to all reviewers except the reviewer record for the user submitting the request
-        for reviewer in self.reviewers.exclude(user=self.submitter):
-            reviewer.send_request_email()
 
     @cached_property
     def revision_as_page(self):

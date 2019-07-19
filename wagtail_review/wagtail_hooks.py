@@ -16,7 +16,8 @@ from wagtail.admin.menu import MenuItem
 from wagtail.core import hooks
 
 from wagtail_review import admin_urls
-from wagtail_review.forms import get_review_form_class, ReviewerFormSet
+from wagtail_review.forms import get_review_form_class, ReviewAssigneeFormSet
+from wagtail_review.models import ReviewRequest
 
 Review = swapper.load_model('wagtail_review', 'Review')
 
@@ -88,9 +89,9 @@ def handle_submit_for_review(request, page):
     if 'action-submit-for-review' in request.POST:
         ReviewForm = get_review_form_class()
 
-        review = Review(page_revision=page.get_latest_revision(), submitter=request.user)
-        form = ReviewForm(request.POST, instance=review, prefix='create_review')
-        reviewer_formset = ReviewerFormSet(request.POST, instance=review, prefix='create_review_reviewers')
+        review_request = ReviewRequest(page_revision=page.get_latest_revision(), submitted_by=request.user)
+        form = ReviewForm(request.POST, instance=review_request, prefix='create_review')
+        reviewer_formset = ReviewAssigneeFormSet(request.POST, prefix='create_review_assignees')
 
         # forms should already have been validated at the point of submission, so treat validation failures
         # at this point as a hard error
@@ -99,13 +100,12 @@ def handle_submit_for_review(request, page):
         if not reviewer_formset.is_valid():
             raise Exception("Reviewer formset failed validation")
 
-        form.save()
-        reviewer_formset.save()
+        review_request = form.save()
 
-        # create a reviewer record for the current user
-        review.reviewers.create(user=review.submitter)
+        for form in reviewer_formset:
+            review_request.assignees.add(form.get_user(review_request))
 
-        review.send_request_emails()
+        review_request.send_request_emails()
 
         # clear original confirmation message as set by the create/edit view,
         # so that we can replace it with our own

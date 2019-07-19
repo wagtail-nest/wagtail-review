@@ -35,14 +35,14 @@
                 <script type="text/django-form-template" id="id_{{ reviewer_formset.prefix }}-EMPTY_FORM_TEMPLATE">
                     {% escapescript %}
                         <li>
-                            <span id="id_create_review_reviewers-__prefix__-label"></span> <a href="#" class="icon icon-cross" id="id_create_review_reviewers-__prefix__-delete_link"><a/>
+                            <span id="id_create_review_assignees-__prefix__-label"></span> <a href="#" class="icon icon-cross" id="id_create_review_reviewers-__prefix__-delete_link"><a/>
                             {{ reviewer_formset.empty_form }}
                         </li>
                     {% endescapescript %}
                 </script>
             </li>
 
-            <li><input type="submit" value="{% trans 'Start review' %}" class="button" /></li>
+            <li><input type="submit" value="{% trans 'Submit review request' %}" class="button" /></li>
         </ul>
     </form>
 </div>

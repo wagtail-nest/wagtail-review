@@ -13,7 +13,7 @@ from wagtail.admin import messages
 from wagtail.admin.modal_workflow import render_modal_workflow
 from wagtail.admin.views import generic
 
-from wagtail_review.forms import get_review_form_class, ReviewerFormSet
+from wagtail_review.forms import get_review_form_class, ReviewAssigneeFormSet
 from wagtail_review.models import Reviewer
 
 
@@ -22,14 +22,14 @@ User = get_user_model()
 
 
 def create_review(request):
-    ReviewForm = get_review_form_class()
+    ReviewRequestForm = get_review_form_class()
 
     if request.method == 'GET':
-        form = ReviewForm(prefix='create_review')
-        reviewer_formset = ReviewerFormSet(prefix='create_review_reviewers')
+        form = ReviewRequestForm(prefix='create_review')
+        reviewer_formset = ReviewAssigneeFormSet(prefix='create_review_assignees')
     else:
-        form = ReviewForm(request.POST, prefix='create_review')
-        reviewer_formset = ReviewerFormSet(request.POST, prefix='create_review_reviewers')
+        form = ReviewRequestForm(request.POST, prefix='create_review')
+        reviewer_formset = ReviewAssigneeFormSet(request.POST, prefix='create_review_assignees')
 
         form_is_valid = form.is_valid()
         reviewer_formset_is_valid = reviewer_formset.is_valid()
