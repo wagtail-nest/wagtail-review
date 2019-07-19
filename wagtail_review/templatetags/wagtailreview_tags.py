@@ -7,11 +7,19 @@ register = template.Library()
 def wagtailreview(context):
     request = context['request']
     token = getattr(request, 'wagtailreview_token', None)
-    perms = getattr(request, 'wagtailreview_perms', None)
-    review_request = getattr(request, 'wagtailreview_review_request', None)
 
-    return {
-        'allow_comments': perms.can_comment(),
-        'allow_responses': review_request is not None,
-        'token':token,
-    }
+    if token is not None:
+        perms = getattr(request, 'wagtailreview_perms')
+        review_request = getattr(request, 'wagtailreview_review_request', None)
+
+        return {
+            'allow_comments': perms.can_comment(),
+            'allow_responses': review_request is not None,
+            'token': token,
+        }
+    else:
+        return {
+            'allow_comments': False,
+            'allow_responses': False,
+            'token': None,
+        }
