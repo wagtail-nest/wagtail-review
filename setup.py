@@ -12,7 +12,6 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'swapper>=1.1,<1.2',
         'pyjwt>1.7,<2.0',
     ],
     license='BSD',

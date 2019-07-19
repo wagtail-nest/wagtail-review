@@ -7,7 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
     name = serializers.ReadOnlyField(source='get_name')
 
     class Meta:
-        model = models.Reviewer
+        model = models.User
         fields = ['id', 'name']
 
 

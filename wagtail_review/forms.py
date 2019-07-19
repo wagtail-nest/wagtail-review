@@ -6,7 +6,7 @@ from django.forms.formsets import DELETION_FIELD_NAME
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext
 
-from wagtail_review.models import ReviewRequest, Reviewer, Response, User as WagtailReviewUser, Share, ExternalUser
+from wagtail_review.models import ReviewRequest, User as WagtailReviewUser, Share, ExternalUser
 
 
 User = get_user_model()
