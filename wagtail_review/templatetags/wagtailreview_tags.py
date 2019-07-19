@@ -14,7 +14,7 @@ def wagtailreview(context):
 
         return {
             'allow_comments': perms.can_comment(),
-            'allow_responses': review_request is not None,
+            'allow_responses': review_request is not None and not review_request.is_closed,
             'token': token,
         }
     else:
