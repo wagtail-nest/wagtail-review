@@ -8,8 +8,6 @@ from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-import swapper
-
 from wagtail.admin import messages
 from wagtail.admin.action_menu import ActionMenuItem
 from wagtail.admin.menu import MenuItem
@@ -18,8 +16,6 @@ from wagtail.core import hooks
 from wagtail_review import admin_urls
 from wagtail_review.forms import get_review_form_class, ReviewAssigneeFormSet
 from wagtail_review.models import ReviewRequest
-
-Review = swapper.load_model('wagtail_review', 'Review')
 
 
 # Whether to use the construct_page_action_menu hook to customise the page editor menu;
@@ -128,7 +124,7 @@ hooks.register('after_edit_page', handle_submit_for_review)
 
 class ReviewsMenuItem(MenuItem):
     def is_shown(self, request):
-        return bool(Review.get_pages_with_reviews_for_user(request.user))
+        return bool(ReviewRequest.get_pages_with_reviews_for_user(request.user))
 
 
 @hooks.register('register_admin_menu_item')

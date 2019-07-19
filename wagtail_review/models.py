@@ -200,11 +200,28 @@ class CommentReply(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class ReviewRequestQuerySet(models.QuerySet):
+    def has_approved_response(self):
+        return self.filter(responses__in=ReviewResponse.objects.approved())
+
+    def has_no_approved_response(self):
+        return self.exclude(responses__in=ReviewResponse.objects.approved())
+
+    def open(self):
+        return self.filter(is_closed=False)
+
+    def closed(Self):
+        return self.filter(is_closed=True)
+
+
 class ReviewRequest(models.Model):
     page_revision = models.ForeignKey('wagtailcore.PageRevision', on_delete=models.CASCADE, related_name='wagtailreview_reviewrequests')
     submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+')
     submitted_at = models.DateTimeField(auto_now_add=True)
     assignees = models.ManyToManyField(User)
+    is_closed = models.BooleanField(default=False)
+
+    objects = ReviewRequestQuerySet.as_manager()
 
     def get_review_url(self, user):
         review_token = user.get_review_token(self.page_revision_id, self.id)
@@ -228,6 +245,45 @@ class ReviewRequest(models.Model):
 
             send_mail(email_subject, email_content, [email])
 
+    @classmethod
+    def get_pages_with_reviews_for_user(cls, user):
+        """
+        Return a queryset of pages which have reviews, for which the user has edit permission
+        """
+        user_perms = UserPagePermissionsProxy(user)
+        reviewed_pages = (
+            cls.objects
+            .order_by('-submitted_at')
+            .values_list('page_revision__page_id', 'submitted_at')
+        )
+        # Annotate datetime when a review was last created for this page
+        last_review_requested_at = Case(
+            *[
+                When(pk=pk, then=Value(submitted_at))
+                for pk, submitted_at in reviewed_pages
+            ],
+            output_field=models.DateTimeField(),
+        )
+        return (
+            user_perms.editable_pages()
+            .filter(pk__in=(page[0] for page in reviewed_pages))
+            .annotate(last_review_requested_at=last_review_requested_at)
+            .order_by('-last_review_requested_at')
+        )
+
+    def get_assignees_without_response(self):
+        return self.assignees.exclude(
+            id__in=ReviewResponse.objects.filter(request=self).values_list('submitted_by_id', flat=True)
+        )
+
+
+class ReviewResponseQuerySet(models.QuerySet):
+    def approved(self):
+        return self.filter(status=ReviewResponse.STATUS_APPROVED)
+
+    def needs_changes(self):
+        return self.filter(status=ReviewResponse.STATUS_NEEDS_CHANGES)
+
 
 class ReviewResponse(models.Model):
     STATUS_APPROVED = 'approved'
@@ -242,6 +298,8 @@ class ReviewResponse(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=255, choices=STATUS_CHOICES)
     comment = models.TextField(blank=True)
+
+    objects = ReviewResponseQuerySet.as_manager()
 
 
 # OLD MODELS BELOW

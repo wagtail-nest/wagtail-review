@@ -21,7 +21,7 @@ from . import serializers
 
 class ReviewTokenMixin:
     authentication_classes = []
-    requires_review_request = False
+    requires_open_review_request = False
 
     def process_review_token(self, data):
         self.user = get_object_or_404(models.User, id=data['usid'])
@@ -43,7 +43,7 @@ class ReviewTokenMixin:
         data = jwt.decode(review_token, settings.SECRET_KEY, algorithms=['HS256'])
         self.process_review_token(data)
 
-        if self.requires_review_request and self.review_request is None:
+        if self.requires_open_review_request and (self.review_request is None or self.review_request.is_closed):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         return super().dispatch(*args, **kwargs)
@@ -152,7 +152,7 @@ class CommentReply(ReviewTokenMixin, generics.RetrieveUpdateDestroyAPIView):
 class Respond(ReviewTokenMixin, generics.CreateAPIView):
     queryset = models.ReviewResponse.objects.all()
     serializer_class = serializers.NewReviewResponseSerializer
-    requires_review_request = True
+    requires_open_review_request = True
 
     @transaction.atomic
     def perform_create(self, serializer):
