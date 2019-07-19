@@ -3,16 +3,16 @@ from rest_framework import serializers
 from .. import models
 
 
-class UserSerializer(serializers.ModelSerializer):
+class ReviewerSerializer(serializers.ModelSerializer):
     name = serializers.ReadOnlyField(source='get_name')
 
     class Meta:
-        model = models.User
+        model = models.Reviewer
         fields = ['id', 'name']
 
 
 class CommentReplySerializer(serializers.ModelSerializer):
-    author = UserSerializer(source='user', read_only=True)
+    author = ReviewerSerializer(source='reviewer', read_only=True)
 
     class Meta:
         model = models.CommentReply
@@ -20,7 +20,7 @@ class CommentReplySerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = UserSerializer(source='user', read_only=True)
+    author = ReviewerSerializer(source='reviewer', read_only=True)
     resolved_at = serializers.ReadOnlyField()
     replies = CommentReplySerializer(many=True, read_only=True)
 

@@ -12,7 +12,7 @@ from wagtail.admin.modal_workflow import render_modal_workflow
 from wagtail.admin.views import generic
 
 from wagtail_review.forms import get_review_form_class, ReviewAssigneeFormSet
-from wagtail_review.models import User as WagtailReviewUser, ReviewRequest, get_review_url
+from wagtail_review.models import Reviewer, ReviewRequest, get_review_url
 
 
 User = get_user_model()
@@ -112,7 +112,7 @@ class AuditTrailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user, created = WagtailReviewUser.objects.get_or_create(internal=self.request.user)
+        user, created = Reviewer.objects.get_or_create(internal=self.request.user)
 
         reviews = (
             ReviewRequest.objects

@@ -29,14 +29,14 @@ class ShareSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializerWithFrontendURL(CommentSerializer):
-    def get_user(self):
-        if 'wagtailreview_user' not in self.context:
-            user, created = models.User.objects.get_or_create(internal=self.context['request'].user)
-            self.context['wagtailreview_user'] = user
+    def get_reviewer(self):
+        if 'reviewer' not in self.context:
+            reviewer, created = models.Reviewer.objects.get_or_create(internal=self.context['request'].user)
+            self.context['reviewer'] = reviewer
 
-        return self.context['wagtailreview_user']
+        return self.context['reviewer']
 
     def to_representation(self, comment):
         data = super().to_representation(comment)
-        data['frontend_url'] = comment.get_frontend_url(self.get_user())
+        data['frontend_url'] = comment.get_frontend_url(self.get_reviewer())
         return data

@@ -16,10 +16,10 @@ from wagtail_review import models
 def review(request, token):
     data = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
 
-    user = get_object_or_404(models.User, id=data['usid'])
+    reviewer = get_object_or_404(models.Reviewer, id=data['rvid'])
     page_revision = get_object_or_404(PageRevision.objects.select_related('page'), id=data['prid'])
     page = page_revision.as_page_object()
-    perms = user.page_perms(page)
+    perms = reviewer.page_perms(page)
 
     if not perms.can_view():
         raise PermissionDenied

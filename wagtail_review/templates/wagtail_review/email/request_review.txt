@@ -1,6 +1,6 @@
 {% load i18n %}
 
-{% if user %}{% blocktrans with name=user.get_name|safe %}Dear {{ name }},{% endblocktrans %}{% endif %}
+{% if reviewer %}{% blocktrans with name=reviewer.get_name|safe %}Dear {{ name }},{% endblocktrans %}{% endif %}
 {% blocktrans with full_name=submitted_by.get_full_name|safe page_title=page.title|safe %}
 {{ full_name }} has requested a review from you on the page "{{ page_title }}". To review the page and provide your feedback, please visit this link:{% endblocktrans %}
 

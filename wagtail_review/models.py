@@ -31,8 +31,8 @@ class ExternalUser(models.Model):
     """
     email = models.EmailField()
 
-    def get_user(self):
-        user, created = User.objects.get_or_create(external=self)
+    def get_reviewer(self):
+        user, created = Reviewer.objects.get_or_create(external=self)
         return user
 
 
@@ -54,7 +54,7 @@ class Share(models.Model):
         Emails the user with the review link
         """
         email_address = self.external_user.email
-        review_token = self.external_user.get_user().get_review_token(page.get_latest_revision().id)
+        review_token = self.external_user.get_reviewer().get_review_token(page.get_latest_revision().id)
 
         email_body = render_to_string('wagtail_review/email/share.txt', {
             'page': self.page,
@@ -80,7 +80,7 @@ class Share(models.Model):
         ]
 
 
-class User(models.Model):
+class Reviewer(models.Model):
     """
     This model represents a union of the AUTH_USER_MODEL and ExternalUser models.
 
@@ -103,11 +103,11 @@ class User(models.Model):
             return self.external.email
 
     def page_perms(self, page_id):
-        return UserPagePermissions(self, page_id)
+        return ReviewerPagePermissions(self, page_id)
 
     def get_review_token(self, page_revision_id, review_request_id=None):
         payload = {
-            'usid': self.id,  # User ID
+            'rvid': self.id,  # Reviewer ID
             'prid': page_revision_id,  # Page revision ID
         }
 
@@ -133,23 +133,23 @@ class User(models.Model):
         ]
 
 
-class UserPagePermissions:
-    def __init__(self, user, page_id):
-        self.user = user
+class ReviewerPagePermissions:
+    def __init__(self, reviewer, page_id):
+        self.reviewer = reviewer
         self.page_id = page_id
 
     @cached_property
     def share(self):
-        if self.user.external_id:
-            return Share.objects.filter(external_user_id=self.user.external_id, page_id=self.page_id).first()
+        if self.reviewer.external_id:
+            return Share.objects.filter(external_user_id=self.reviewer.external_id, page_id=self.page_id).first()
 
     def can_view(self):
         """
-        Returns True if the user can view the page
+        Returns True if the reviewer can view the page
         """
-        if self.user.external_id:
+        if self.reviewer.external_id:
             if self.share is None:
-                # Not shared with this user before
+                # Not shared with this reviewer before
                 return False
 
             if self.share.expires_at is not None and self.share.expires_at < timezone.now():
@@ -160,13 +160,13 @@ class UserPagePermissions:
 
     def can_comment(self):
         """
-        Returns True if the user can comment on the page
+        Returns True if the reviewer can comment on the page
         """
         if not self.can_view():
             return False
 
-        if self.user.external_id and not self.share.can_comment:
-            # User can view but not comment
+        if self.reviewer.external_id and not self.share.can_comment:
+            # Reviewer can view but not comment
             return False
 
         return True
@@ -174,7 +174,7 @@ class UserPagePermissions:
 
 class Comment(models.Model):
     page_revision = models.ForeignKey('wagtailcore.PageRevision', on_delete=models.CASCADE, related_name='wagtailreview_comments')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    reviewer = models.ForeignKey(Reviewer, on_delete=models.CASCADE, related_name='comments')
     quote = models.TextField()
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -187,14 +187,14 @@ class Comment(models.Model):
     end_xpath = models.TextField()
     end_offset = models.IntegerField()
 
-    def get_frontend_url(self, user):
-        review_token = user.get_review_token(self.page_revision_id)
+    def get_frontend_url(self, reviewer):
+        review_token = reviewer.get_review_token(self.page_revision_id)
         return get_review_url(review_token) + "?comment=" + str(self.id)
 
 
 class CommentReply(models.Model):
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='replies')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comment_replies')
+    reviewer = models.ForeignKey(Reviewer, on_delete=models.CASCADE, related_name='comment_replies')
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -218,26 +218,26 @@ class ReviewRequest(models.Model):
     page_revision = models.ForeignKey('wagtailcore.PageRevision', on_delete=models.CASCADE, related_name='wagtailreview_reviewrequests')
     submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+')
     submitted_at = models.DateTimeField(auto_now_add=True)
-    assignees = models.ManyToManyField(User)
+    assignees = models.ManyToManyField(Reviewer)
     is_closed = models.BooleanField(default=False)
 
     objects = ReviewRequestQuerySet.as_manager()
 
-    def get_review_url(self, user):
-        review_token = user.get_review_token(self.page_revision_id, self.id)
+    def get_review_url(self, reviewer):
+        review_token = reviewer.get_review_token(self.page_revision_id, self.id)
         return get_review_url(review_token)
 
     def send_request_emails(self):
         # send request emails to all reviewers except the reviewer record for the user submitting the request
-        for user in self.assignees.all():
-            email = user.get_email()
+        for reviewer in self.assignees.all():
+            email = reviewer.get_email()
 
             context = {
                 'email': email,
-                'user': user,
+                'reviewer': reviewer,
                 'review_request': self,
                 'page': self.page_revision.as_page_object(),
-                'review_url': self.get_review_url(user),
+                'review_url': self.get_review_url(reviewer),
             }
 
             email_subject = render_to_string('wagtail_review/email/request_review_subject.txt', context).strip()
@@ -294,7 +294,7 @@ class ReviewResponse(models.Model):
     ]
 
     request = models.ForeignKey(ReviewRequest, on_delete=models.CASCADE, related_name='responses')
-    submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
+    submitted_by = models.ForeignKey(Reviewer, on_delete=models.CASCADE, related_name='+')
     submitted_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=255, choices=STATUS_CHOICES)
     comment = models.TextField(blank=True)

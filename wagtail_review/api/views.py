@@ -24,9 +24,9 @@ class ReviewTokenMixin:
     requires_open_review_request = False
 
     def process_review_token(self, data):
-        self.user = get_object_or_404(models.User, id=data['usid'])
+        self.reviewer = get_object_or_404(models.Reviewer, id=data['rvid'])
         self.page_revision = get_object_or_404(PageRevision.objects.select_related('page'), id=data['prid'])
-        self.perms = self.user.page_perms(self.page_revision.page)
+        self.perms = self.reviewer.page_perms(self.page_revision.page)
         self.share = self.perms.share
 
         if self.share is not None:
@@ -54,8 +54,8 @@ class Home(ReviewTokenMixin, views.APIView):
 
     def get(self, request, format=None):
         return Response({
-            'you': serializers.UserSerializer(self.user).data,
-            'can_comment': self.user.page_perms(self.page_revision.page).can_comment(),
+            'you': serializers.ReviewerSerializer(self.reviewer).data,
+            'can_comment': self.reviewer.page_perms(self.page_revision.page).can_comment(),
             'can_review': self.review_request is not None,
         })
 
@@ -73,7 +73,7 @@ class CommentList(ReviewTokenMixin, generics.ListCreateAPIView):
         return models.Comment.objects.filter(page_revision=self.page_revision)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.user, page_revision=self.page_revision)
+        serializer.save(reviewer=self.reviewer, page_revision=self.page_revision)
 
 
 class Comment(ReviewTokenMixin, generics.RetrieveUpdateDestroyAPIView):
@@ -81,14 +81,14 @@ class Comment(ReviewTokenMixin, generics.RetrieveUpdateDestroyAPIView):
 
     def update(self, *args, **kwargs):
         comment = self.get_object()
-        if comment.user != self.user:
+        if comment.reviewer != self.reviewer:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         return super().update(*args, **kwargs)
 
     def destroy(self, *args, **kwargs):
         comment = self.get_object()
-        if comment.user != self.user:
+        if comment.reviewer != self.reviewer:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         return super().destroy(*args, **kwargs)
@@ -125,7 +125,7 @@ class CommentReplyList(ReviewTokenMixin, generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         # TODO: Make sure self.kwargs['comment_pk'] is on the current page revision
-        serializer.save(user=self.user, comment_id=self.kwargs['pk'])
+        serializer.save(reviewer=self.reviewer, comment_id=self.kwargs['pk'])
 
 
 class CommentReply(ReviewTokenMixin, generics.RetrieveUpdateDestroyAPIView):
@@ -133,14 +133,14 @@ class CommentReply(ReviewTokenMixin, generics.RetrieveUpdateDestroyAPIView):
 
     def update(self, *args, **kwargs):
         reply = self.get_object()
-        if reply.user != self.user:
+        if reply.reviewer != self.reviewer:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         return super().update(*args, **kwargs)
 
     def destroy(self, *args, **kwargs):
         reply = self.get_object()
-        if reply.user != self.user:
+        if reply.reviewer != self.reviewer:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         return super().destroy(*args, **kwargs)
@@ -156,4 +156,4 @@ class Respond(ReviewTokenMixin, generics.CreateAPIView):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        serializer.save(submitted_by=self.user, request=self.review_request)
+        serializer.save(submitted_by=self.reviewer, request=self.review_request)
