@@ -5,10 +5,10 @@ from ..api.serializers import CommentSerializer
 from .. import models
 
 
-class ExternalUserSerializer(serializers.ModelSerializer):
+class ExternalReviewerSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = models.ExternalUser
+        model = models.ExternalReviewer
         fields = ['email']
 
 
@@ -21,7 +21,7 @@ class NewShareSerializer(serializers.Serializer):
 
 
 class ShareSerializer(serializers.ModelSerializer):
-    user = ExternalUserSerializer(source='external_user')
+    user = ExternalReviewerSerializer(source='external_user')
 
     class Meta:
         model = models.Share

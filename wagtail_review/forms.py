@@ -6,7 +6,7 @@ from django.forms.formsets import DELETION_FIELD_NAME
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext
 
-from wagtail_review.models import ReviewRequest, Reviewer, Share, ExternalUser
+from wagtail_review.models import ReviewRequest, Reviewer, Share, ExternalReviewer
 
 
 User = get_user_model()
@@ -72,7 +72,7 @@ class ReviewAssigneeForm(forms.Form):
             )
             return user
         else:
-            external_user, created = ExternalUser.objects.get_or_create(
+            external_user, created = ExternalReviewer.objects.get_or_create(
                 email=self.cleaned_data['email'],
             )
             share, created = Share.objects.get_or_create(

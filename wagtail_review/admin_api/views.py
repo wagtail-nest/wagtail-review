@@ -42,7 +42,7 @@ class PageShares(AdminAPIViewMixin, generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
 
         # Look for an external user with the email address
-        external_user, created = models.ExternalUser.objects.get_or_create(email=serializer.data['email'])
+        external_user, created = models.ExternalReviewer.objects.get_or_create(email=serializer.data['email'])
 
         if models.Share.objects.filter(page=page, external_user=external_user).exists():
             raise ValidationError({'email': "This page has already been shared with this email address"})

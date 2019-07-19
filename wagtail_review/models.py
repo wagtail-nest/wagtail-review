@@ -24,7 +24,7 @@ def get_review_url(token):
     return settings.BASE_URL + reverse('wagtail_review:review', args=[token])
 
 
-class ExternalUser(models.Model):
+class ExternalReviewer(models.Model):
     """
     Represents an external user who doesn't have an account but may need to view
     draft revisions of pages and comment on them.
@@ -40,7 +40,7 @@ class Share(models.Model):
     """
     Grants access to draft revisions of a page to an external user.
     """
-    external_user = models.ForeignKey(ExternalUser, on_delete=models.CASCADE, related_name='shares')
+    external_user = models.ForeignKey(ExternalReviewer, on_delete=models.CASCADE, related_name='shares')
     page = models.ForeignKey('wagtailcore.Page', on_delete=models.CASCADE, related_name='wagtailreview_shares')
     shared_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+')
     shared_at = models.DateTimeField(auto_now_add=True)
@@ -82,13 +82,13 @@ class Share(models.Model):
 
 class Reviewer(models.Model):
     """
-    This model represents a union of the AUTH_USER_MODEL and ExternalUser models.
+    This model represents a union of the AUTH_USER_MODEL and ExternalReviewer models.
 
     It's intended as a place to reference in ForeignKeys in places where either an internal or external
     user could be specified.
     """
     internal = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE, related_name='+')
-    external = models.ForeignKey(ExternalUser, null=True, on_delete=models.CASCADE, related_name='+')
+    external = models.ForeignKey(ExternalReviewer, null=True, on_delete=models.CASCADE, related_name='+')
 
     def get_name(self):
         if self.internal:
