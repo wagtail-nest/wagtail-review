@@ -7,7 +7,6 @@ from wagtail_review.api import urls as api_urls
 app_name = 'wagtail_review'
 
 urlpatterns = [
-    url(r'^view/(\d+)/(\w+)/$', frontend.view, name='view'),
-    url(r'^respond/(\d+)/(\w+)/$', frontend.respond, name='respond'),
+    url(r'^review/([\w\.\-\_]+)/$', frontend.review, name='review'),
     url(r'^api/', include(api_urls, namespace='api')),
 ]

@@ -19,12 +19,21 @@ from wagtail.admin.utils import send_mail
 from wagtail.core.models import UserPagePermissionsProxy
 
 
+# TODO: Make this configurable for headless sites
+def get_review_url(token):
+    return settings.BASE_URL + reverse('wagtail_review:review', args=[token])
+
+
 class ExternalUser(models.Model):
     """
     Represents an external user who doesn't have an account but may need to view
     draft revisions of pages and comment on them.
     """
     email = models.EmailField()
+
+    def get_user(self):
+        user, created = User.objects.get_or_create(external=self)
+        return user
 
 
 class Share(models.Model):
@@ -44,12 +53,12 @@ class Share(models.Model):
         """
         Emails the user with the review link
         """
-        review_url = 'TODO'
         email_address = self.external_user.email
+        review_token = self.external_user.get_user().get_review_token(page.get_latest_revision().id)
 
         email_body = render_to_string('wagtail_review/email/share.txt', {
             'page': self.page,
-            'review_url': review_url,
+            'review_url': get_review_url(review_token),
         })
 
         send_mail("A page has been shared with you", email_body, [email_address])
@@ -178,6 +187,10 @@ class Comment(models.Model):
     end_xpath = models.TextField()
     end_offset = models.IntegerField()
 
+    def get_frontend_url(self, user):
+        review_token = user.get_review_token(self.page_revision_id)
+        return get_review_url(review_token) + "?comment=" + str(self.id)
+
 
 class CommentReply(models.Model):
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='replies')
@@ -193,6 +206,10 @@ class ReviewRequest(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
     assignees = models.ManyToManyField(User)
 
+    def get_review_url(self, user):
+        review_token = user.get_review_token(self.page_revision_id, self.id)
+        return get_review_url(review_token)
+
     def send_request_emails(self):
         # send request emails to all reviewers except the reviewer record for the user submitting the request
         for user in self.assignees.all():
@@ -203,8 +220,7 @@ class ReviewRequest(models.Model):
                 'user': user,
                 'review_request': self,
                 'page': self.page_revision.as_page_object(),
-                'respond_url': 'TODO',
-                'view_url': 'TODO',
+                'review_url': self.get_review_url(user),
             }
 
             email_subject = render_to_string('wagtail_review/email/request_review_subject.txt', context).strip()

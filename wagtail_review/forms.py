@@ -98,15 +98,3 @@ ReviewAssigneeFormSet = forms.formset_factory(
     formset=BaseReviewAssigneeFormSet,
     extra=0,
 )
-
-
-class ResponseForm(forms.ModelForm):
-    class Meta:
-        model = Response
-        fields = ['result', 'comment']
-        widgets = {
-            'result': forms.RadioSelect,
-            'comment': forms.Textarea(attrs={
-                'placeholder': 'Enter your comments',
-            }),
-        }
