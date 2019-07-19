@@ -21,6 +21,7 @@ from . import serializers
 
 class ReviewTokenMixin:
     authentication_classes = []
+    requires_review_request = False
 
     def process_review_token(self, data):
         self.user = get_object_or_404(models.User, id=data['usid'])
@@ -31,11 +32,19 @@ class ReviewTokenMixin:
         if self.share is not None:
             self.share.log_access()
 
+        if 'rrid' in data:
+            self.review_request = get_object_or_404(models.ReviewRequest, id=data['rrid'])
+        else:
+            self.review_request = None
+
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         review_token = self.request.META.get('HTTP_X_REVIEW_TOKEN')
         data = jwt.decode(review_token, settings.SECRET_KEY, algorithms=['HS256'])
         self.process_review_token(data)
+
+        if self.requires_review_request and self.review_request is None:
+            return Response(status=status.HTTP_403_FORBIDDEN)
 
         return super().dispatch(*args, **kwargs)
 
@@ -47,6 +56,7 @@ class Home(ReviewTokenMixin, views.APIView):
         return Response({
             'you': serializers.UserSerializer(self.user).data,
             'can_comment': self.user.page_perms(self.page_revision.page).can_comment(),
+            'can_review': self.review_request is not None,
         })
 
 
@@ -137,3 +147,13 @@ class CommentReply(ReviewTokenMixin, generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return models.CommentReply.objects.filter(comment_id=self.kwargs['comment_pk'])
+
+
+class Respond(ReviewTokenMixin, generics.CreateAPIView):
+    queryset = models.ReviewResponse.objects.all()
+    serializer_class = serializers.NewReviewResponseSerializer
+    requires_review_request = True
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        serializer.save(submitted_by=self.user, request=self.review_request)

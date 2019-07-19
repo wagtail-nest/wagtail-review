@@ -90,11 +90,14 @@ class User(models.Model):
     def page_perms(self, page_id):
         return UserPagePermissions(self, page_id)
 
-    def get_review_token(self, page_revision_id):
+    def get_review_token(self, page_revision_id, review_request_id=None):
         payload = {
             'usid': self.id,  # User ID
             'prid': page_revision_id,  # Page revision ID
         }
+
+        if review_request_id is not None:
+            payload['rrid'] = review_request_id
 
         return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
 
@@ -178,6 +181,28 @@ class CommentReply(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class ReviewRequest(models.Model):
+    page_revision = models.ForeignKey('wagtailcore.PageRevision', on_delete=models.CASCADE, related_name='wagtailreview_reviewrequests')
+    submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+')
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    assignees = models.ManyToManyField(User)
+
+
+class ReviewResponse(models.Model):
+    STATUS_APPROVED = 'approved'
+    STATUS_NEEDS_CHANGES = 'needs-changes'
+    STATUS_CHOICES = [
+        (STATUS_APPROVED, _("approved")),
+        (STATUS_NEEDS_CHANGES, _("needs changes")),
+    ]
+
+    request = models.ForeignKey(ReviewRequest, on_delete=models.CASCADE, related_name='responses')
+    submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=255, choices=STATUS_CHOICES)
+    comment = models.TextField(blank=True)
+
+
 # OLD MODELS BELOW
 
 
@@ -199,6 +224,23 @@ class BaseReview(models.Model):
     status = models.CharField(max_length=30, default='open', choices=REVIEW_STATUS_CHOICES, editable=False)
     submitter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+', editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # TEMPORARY
+    def into_review_request(self):
+        request, created = ReviewRequest.objects.get_or_create(
+            page_revision=self.page_revision,
+            defaults={
+                'submitted_by_id': self.submitter_id,
+                'submitted_at': self.created_at,
+            }
+        )
+
+        request.assignees.set([
+            reviewer.into_user()
+            for reviewer in self.reviewers.all()
+        ])
+
+        return request
 
     def send_request_emails(self):
         # send request emails to all reviewers except the reviewer record for the user submitting the request
