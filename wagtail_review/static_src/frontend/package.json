@@ -1,5 +1,5 @@
 {
-  "name": "wagtail-review",
+  "name": "wagtail-review-frontend",
   "version": "1.0.0",
   "description": "",
   "main": "src/main.js",
@@ -19,6 +19,6 @@
     "acorn": "^6.2.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "wagtail-review-ui": "^0.2.0"
+    "wagtail-review-ui": "^0.2.1"
   }
 }
