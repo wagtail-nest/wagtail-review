@@ -52,6 +52,7 @@ class PageShares(AdminAPIViewMixin, generics.ListCreateAPIView):
             external_user=external_user,
             shared_by=self.request.user,
             expires_at=serializer.data.get('expires_at'),
+            can_comment=True,
         )
 
         share.send_share_email()
