@@ -54,7 +54,7 @@ class Share(models.Model):
         Emails the user with the review link
         """
         email_address = self.external_user.email
-        review_token = self.external_user.get_reviewer().get_review_token(page.get_latest_revision().id)
+        review_token = self.external_user.get_reviewer().get_review_token(self.page.get_latest_revision().id)
 
         email_body = render_to_string('wagtail_review/email/share.txt', {
             'page': self.page,
