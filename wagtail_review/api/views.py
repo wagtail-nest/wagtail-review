@@ -38,9 +38,11 @@ class ReviewTokenMixin:
 
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
-        review_token = self.request.META.get('HTTP_X_REVIEW_TOKEN')
-        data = jwt.decode(review_token, settings.SECRET_KEY, algorithms=['HS256'])
-        self.process_review_token(data)
+        if self.request.method != 'OPTIONS':
+            review_token = self.request.META.get('HTTP_X_REVIEW_TOKEN')
+            data = jwt.decode(review_token, settings.SECRET_KEY, algorithms=['HS256'])
+            self.process_review_token(data)
+
         return super().dispatch(*args, **kwargs)
 
 
