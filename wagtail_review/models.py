@@ -10,18 +10,28 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
-
-import swapper
-import jwt
 
 from wagtail.admin.utils import send_mail
 from wagtail.core.models import UserPagePermissionsProxy
 
+from .token import Token
 
-# TODO: Make this configurable for headless sites
+
+def get_review_url_impl(token):
+    return settings.BASE_URL + reverse('wagtail_review:review', args=[token.encode()])
+
+
 def get_review_url(token):
-    return settings.BASE_URL + reverse('wagtail_review:review', args=[token])
+    REVIEW_URL_BUILDER = getattr(settings, 'WAGTAILREVIEW_REVIEW_URL_BUILDER', None)
+
+    if REVIEW_URL_BUILDER is not None:
+        review_url_builder = import_string(REVIEW_URL_BUILDER)
+    else:
+        review_url_builder = get_review_url_impl
+
+    return review_url_builder(token)
 
 
 class ExternalReviewer(models.Model):
@@ -54,7 +64,7 @@ class Share(models.Model):
         Emails the user with the review link
         """
         email_address = self.external_user.email
-        review_token = self.external_user.get_reviewer().get_review_token(self.page.get_latest_revision().id)
+        review_token = Token(self.external_user.get_reviewer(), self.page.get_latest_revision())
 
         email_body = render_to_string('wagtail_review/email/share.txt', {
             'page': self.page,
@@ -104,17 +114,6 @@ class Reviewer(models.Model):
 
     def page_perms(self, page_id):
         return ReviewerPagePermissions(self, page_id)
-
-    def get_review_token(self, page_revision_id, review_request_id=None):
-        payload = {
-            'rvid': self.id,  # Reviewer ID
-            'prid': page_revision_id,  # Page revision ID
-        }
-
-        if review_request_id is not None:
-            payload['rrid'] = review_request_id
-
-        return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
 
     class Meta:
         constraints = [
@@ -188,7 +187,7 @@ class Comment(models.Model):
     end_offset = models.IntegerField()
 
     def get_frontend_url(self, reviewer):
-        review_token = reviewer.get_review_token(self.page_revision_id)
+        review_token = Token(reviewer, self.page_revision_id)
         return get_review_url(review_token) + "?comment=" + str(self.id)
 
 
@@ -224,7 +223,7 @@ class ReviewRequest(models.Model):
     objects = ReviewRequestQuerySet.as_manager()
 
     def get_review_url(self, reviewer):
-        review_token = reviewer.get_review_token(self.page_revision_id, self.id)
+        review_token = Token(reviewer, self.page_revision_id, self)
         return get_review_url(review_token)
 
     def send_request_emails(self):
