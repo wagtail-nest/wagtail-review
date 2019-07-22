@@ -46,7 +46,7 @@ def review_to_review_request(models, review):
     for annotation in models.Annotation.objects.filter(reviewer__review=review).select_related('reviewer'):
         annotation_range = annotation.ranges.first()
 
-        models.Comment.create(
+        models.Comment.objects.create(
             page_revision_id=review.page_revision_id,
             user=reviewer_to_user(models, annotation.reviewer),
             quote=annotation.quote,
@@ -67,7 +67,7 @@ def review_to_review_request(models, review):
             request=request,
             submitted_by=reviewer_to_user(models, response.reviewer),
             submitted_at=response.created_at,
-            status=models.ReviewResponse.STATUS_APPROVED if response.result == 'approve' else models.ReviewResponse.STATUS_NEEDS_CHANGES,
+            status='approved' if response.result == 'approve' else 'needs-changes',
             comment=response.comment,
         )
 
