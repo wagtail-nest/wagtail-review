@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from wagtail.core.models import Page
 
-from wagtail_review.models import Review
+from wagtail_review.models import ReviewRequest
 
 
 class TestAdminViews(TestCase):
@@ -49,29 +49,30 @@ class TestAdminViews(TestCase):
             {'id': 1, 'full_name': 'Spongebob Squarepants', 'username': 'spongebob'}
         ])
 
-    def test_validate_reviewers_required(self):
+    def test_validate_assignees_required(self):
         # reject a completely empty formset
         response = self.client.post('/admin/wagtail_review/create_review/', {
-            'create_review_reviewers-TOTAL_FORMS': 0,
-            'create_review_reviewers-INITIAL_FORMS': 0,
-            'create_review_reviewers-MIN_NUM_FORMS': 0,
-            'create_review_reviewers-MAX_NUM_FORMS': 1000,
+            'create_review_assignees-TOTAL_FORMS': 0,
+            'create_review_assignees-INITIAL_FORMS': 0,
+            'create_review_assignees-MIN_NUM_FORMS': 0,
+            'create_review_assignees-MAX_NUM_FORMS': 1000,
         })
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.content)
         self.assertEqual(response_json['step'], 'form')
         self.assertFormsetError(response, 'reviewer_formset', None, None, "Please select one or more reviewers.")
 
+    def test_validate_assignees_required_when_all_deleted(self):
         # reject a formset with only deleted items
         response = self.client.post('/admin/wagtail_review/create_review/', {
-            'create_review_reviewers-TOTAL_FORMS': 1,
-            'create_review_reviewers-INITIAL_FORMS': 0,
-            'create_review_reviewers-MIN_NUM_FORMS': 0,
-            'create_review_reviewers-MAX_NUM_FORMS': 1000,
+            'create_review_assignees-TOTAL_FORMS': 1,
+            'create_review_assignees-INITIAL_FORMS': 0,
+            'create_review_assignees-MIN_NUM_FORMS': 0,
+            'create_review_assignees-MAX_NUM_FORMS': 1000,
 
-            'create_review_reviewers-0-user': '',
-            'create_review_reviewers-0-email': 'someone@example.com',
-            'create_review_reviewers-0-DELETE': '1',
+            'create_review_assignees-0-user': '',
+            'create_review_assignees-0-email': 'someone@example.com',
+            'create_review_assignees-0-DELETE': '1',
         })
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.content)
@@ -80,14 +81,14 @@ class TestAdminViews(TestCase):
 
     def test_validate_ok(self):
         response = self.client.post('/admin/wagtail_review/create_review/', {
-            'create_review_reviewers-TOTAL_FORMS': 1,
-            'create_review_reviewers-INITIAL_FORMS': 0,
-            'create_review_reviewers-MIN_NUM_FORMS': 0,
-            'create_review_reviewers-MAX_NUM_FORMS': 1000,
+            'create_review_assignees-TOTAL_FORMS': 1,
+            'create_review_assignees-INITIAL_FORMS': 0,
+            'create_review_assignees-MIN_NUM_FORMS': 0,
+            'create_review_assignees-MAX_NUM_FORMS': 1000,
 
-            'create_review_reviewers-0-user': '',
-            'create_review_reviewers-0-email': 'someone@example.com',
-            'create_review_reviewers-0-DELETE': '',
+            'create_review_assignees-0-user': '',
+            'create_review_assignees-0-email': 'someone@example.com',
+            'create_review_assignees-0-DELETE': '',
         })
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.content)
@@ -98,18 +99,18 @@ class TestAdminViews(TestCase):
             'title': "Home submitted",
             'slug': 'title',
 
-            'create_review_reviewers-TOTAL_FORMS': 2,
-            'create_review_reviewers-INITIAL_FORMS': 0,
-            'create_review_reviewers-MIN_NUM_FORMS': 0,
-            'create_review_reviewers-MAX_NUM_FORMS': 1000,
+            'create_review_assignees-TOTAL_FORMS': 2,
+            'create_review_assignees-INITIAL_FORMS': 0,
+            'create_review_assignees-MIN_NUM_FORMS': 0,
+            'create_review_assignees-MAX_NUM_FORMS': 1000,
 
-            'create_review_reviewers-0-user': '',
-            'create_review_reviewers-0-email': 'someone@example.com',
-            'create_review_reviewers-0-DELETE': '',
+            'create_review_assignees-0-user': '',
+            'create_review_assignees-0-email': 'someone@example.com',
+            'create_review_assignees-0-DELETE': '',
 
-            'create_review_reviewers-1-user': User.objects.get(username='spongebob').pk,
-            'create_review_reviewers-1-email': '',
-            'create_review_reviewers-1-DELETE': '',
+            'create_review_assignees-1-user': User.objects.get(username='spongebob').pk,
+            'create_review_assignees-1-email': '',
+            'create_review_assignees-1-DELETE': '',
 
             'action-submit-for-review': '1',
         })
@@ -117,11 +118,11 @@ class TestAdminViews(TestCase):
         self.assertRedirects(response, '/admin/pages/1/')
 
         revision = self.homepage.get_latest_revision()
-        review = Review.objects.get(page_revision=revision)
-        self.assertEqual(review.reviewers.count(), 3)
+        review = ReviewRequest.objects.get(page_revision=revision)
+        self.assertEqual(review.assignees.count(), 2)
 
-        reviewer_emails = set(reviewer.get_email_address() for reviewer in review.reviewers.all())
-        self.assertEqual(reviewer_emails, {'admin@example.com', 'someone@example.com', 'spongebob@example.com'})
+        reviewer_emails = set(reviewer.get_email() for reviewer in review.assignees.all())
+        self.assertEqual(reviewer_emails, {'someone@example.com', 'spongebob@example.com'})
 
         self.assertEqual(len(mail.outbox), 2)
         email_recipients = set(email.to[0] for email in mail.outbox)
@@ -132,18 +133,18 @@ class TestAdminViews(TestCase):
             'title': "Subpage submitted",
             'slug': 'subpage-submitted',
 
-            'create_review_reviewers-TOTAL_FORMS': 2,
-            'create_review_reviewers-INITIAL_FORMS': 0,
-            'create_review_reviewers-MIN_NUM_FORMS': 0,
-            'create_review_reviewers-MAX_NUM_FORMS': 1000,
+            'create_review_assignees-TOTAL_FORMS': 2,
+            'create_review_assignees-INITIAL_FORMS': 0,
+            'create_review_assignees-MIN_NUM_FORMS': 0,
+            'create_review_assignees-MAX_NUM_FORMS': 1000,
 
-            'create_review_reviewers-0-user': '',
-            'create_review_reviewers-0-email': 'someone@example.com',
-            'create_review_reviewers-0-DELETE': '',
+            'create_review_assignees-0-user': '',
+            'create_review_assignees-0-email': 'someone@example.com',
+            'create_review_assignees-0-DELETE': '',
 
-            'create_review_reviewers-1-user': User.objects.get(username='spongebob').pk,
-            'create_review_reviewers-1-email': '',
-            'create_review_reviewers-1-DELETE': '',
+            'create_review_assignees-1-user': User.objects.get(username='spongebob').pk,
+            'create_review_assignees-1-email': '',
+            'create_review_assignees-1-DELETE': '',
 
             'action-submit-for-review': '1',
         })
@@ -151,11 +152,11 @@ class TestAdminViews(TestCase):
         self.assertRedirects(response, '/admin/pages/2/')
 
         revision = Page.objects.get(slug='subpage-submitted').get_latest_revision()
-        review = Review.objects.get(page_revision=revision)
-        self.assertEqual(review.reviewers.count(), 3)
+        review = ReviewRequest.objects.get(page_revision=revision)
+        self.assertEqual(review.assignees.count(), 2)
 
-        reviewer_emails = set(reviewer.get_email_address() for reviewer in review.reviewers.all())
-        self.assertEqual(reviewer_emails, {'admin@example.com', 'someone@example.com', 'spongebob@example.com'})
+        reviewer_emails = set(reviewer.get_email() for reviewer in review.assignees.all())
+        self.assertEqual(reviewer_emails, {'someone@example.com', 'spongebob@example.com'})
 
         self.assertEqual(len(mail.outbox), 2)
         email_recipients = set(email.to[0] for email in mail.outbox)

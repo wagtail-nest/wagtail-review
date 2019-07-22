@@ -1,55 +1,130 @@
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
+from django.core import mail
+from django.db.utils import IntegrityError
 from django.test import TestCase
+from django.utils import timezone
 
 from wagtail.core.models import Page
 
-from wagtail_review.models import Review, Reviewer
+from wagtail_review.models import ExternalReviewer, Reviewer, Share
+
+
+class TestShareModel(TestCase):
+    fixtures = ['test.json']
+
+    def setUp(self):
+        self.homer = User.objects.get(username="homer")
+        self.bart = ExternalReviewer.objects.create(email="bart@example.com")
+
+    def test_send_share_email(self):
+        share = Share.objects.create(external_user=self.bart, shared_by=self.homer, page_id=2)
+
+        share.send_share_email()
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].recipients(), ["bart@example.com"])
+
+    def test_log_access(self):
+        share = Share.objects.create(external_user=self.bart, shared_by=self.homer, page_id=2)
+
+        self.assertIsNone(share.first_accessed_at)
+        self.assertIsNone(share.last_accessed_at)
+
+        share.log_access()
+
+        self.assertIsNotNone(share.first_accessed_at)
+        self.assertIsNotNone(share.last_accessed_at)
+        self.assertEqual(share.first_accessed_at, share.last_accessed_at)
+
+        initial_first_accessed_at = share.first_accessed_at
+
+        share.log_access()
+
+        self.assertEqual(initial_first_accessed_at, share.first_accessed_at)
+        self.assertNotEqual(share.first_accessed_at, share.last_accessed_at)
 
 
 class TestReviewerModel(TestCase):
     fixtures = ['test.json']
 
-    def setUp(self):
-        self.homepage = Page.objects.get(url_path='/home/').specific
-        self.revision = self.homepage.save_revision()
-        self.review = Review.objects.create(page_revision=self.revision, submitter=User.objects.first())
+    def test_internal_reviewer(self):
+        homer = User.objects.get(username="homer")
+        reviewer = Reviewer.objects.create(internal=homer)
 
-    def test_tokens_are_assigned(self):
-        """Test that response_token and view_token are populated on save"""
-        reviewer = Reviewer.objects.create(review=self.review, email='bob@example.com')
-        self.assertRegexpMatches(reviewer.response_token, r'^\w{16}$')
-        self.assertRegexpMatches(reviewer.view_token, r'^\w{16}$')
+        self.assertEqual(reviewer.get_name(), "Homer Simpson")
+        self.assertEqual(reviewer.get_email(), "homer@example.com")
 
-    def test_validate_email_or_user_required(self):
-        reviewer = Reviewer(review=self.review)
-        with self.assertRaises(ValidationError):
-            reviewer.full_clean()
+        page_perms = reviewer.page_perms(2)
+        self.assertTrue(page_perms.can_view())
+        self.assertTrue(page_perms.can_comment())
 
-    def test_get_email_address(self):
-        reviewer1 = Reviewer(review=self.review, email='bob@example.com')
-        reviewer2 = Reviewer(review=self.review, user=User.objects.get(username='spongebob'))
-        self.assertEqual(reviewer1.get_email_address(), 'bob@example.com')
-        self.assertEqual(reviewer2.get_email_address(), 'spongebob@example.com')
+    def test_external_reviewer(self):
+        bart = ExternalReviewer.objects.create(email="bart@example.com")
+        reviewer = Reviewer.objects.create(external=bart)
 
-    def test_get_respond_url(self):
-        reviewer = Reviewer.objects.create(review=self.review, email='bob@example.com')
-        self.assertEqual(
-            reviewer.get_respond_url(),
-            '/review/respond/%d/%s/' % (reviewer.id, reviewer.response_token)
-        )
-        self.assertEqual(
-            reviewer.get_respond_url(absolute=True),
-            'http://test.local/review/respond/%d/%s/' % (reviewer.id, reviewer.response_token)
-        )
+        self.assertEqual(reviewer.get_name(), "bart@example.com")
+        self.assertEqual(reviewer.get_email(), "bart@example.com")
 
-    def test_get_view_url(self):
-        reviewer = Reviewer.objects.create(review=self.review, email='bob@example.com')
-        self.assertEqual(
-            reviewer.get_view_url(),
-            '/review/view/%d/%s/' % (reviewer.id, reviewer.view_token)
-        )
-        self.assertEqual(
-            reviewer.get_view_url(absolute=True),
-            'http://test.local/review/view/%d/%s/' % (reviewer.id, reviewer.view_token)
-        )
+        page_perms = reviewer.page_perms(2)
+        self.assertFalse(page_perms.can_view())
+        self.assertFalse(page_perms.can_comment())
+
+    # Test external user with shares
+
+    def test_external_reviewer_with_share(self):
+        bart = ExternalReviewer.objects.create(email="bart@example.com")
+        reviewer = Reviewer.objects.create(external=bart)
+
+        homer = User.objects.get(username="homer")
+        Share.objects.create(external_user=bart, shared_by=homer, page_id=2, can_comment=True)
+
+        page_perms = reviewer.page_perms(2)
+        self.assertTrue(page_perms.can_view())
+        self.assertTrue(page_perms.can_comment())
+
+    def test_external_reviewer_with_share_but_no_commenting(self):
+        bart = ExternalReviewer.objects.create(email="bart@example.com")
+        reviewer = Reviewer.objects.create(external=bart)
+
+        homer = User.objects.get(username="homer")
+        Share.objects.create(external_user=bart, shared_by=homer, page_id=2, can_comment=False)
+
+        page_perms = reviewer.page_perms(2)
+        self.assertTrue(page_perms.can_view())
+        self.assertFalse(page_perms.can_comment())
+
+    def test_external_reviewer_with_expired_share(self):
+        bart = ExternalReviewer.objects.create(email="bart@example.com")
+        reviewer = Reviewer.objects.create(external=bart)
+
+        homer = User.objects.get(username="homer")
+        Share.objects.create(external_user=bart, shared_by=homer, page_id=2, can_comment=True, expires_at=timezone.now())
+
+        page_perms = reviewer.page_perms(2)
+        self.assertFalse(page_perms.can_view())
+        self.assertFalse(page_perms.can_comment())
+
+    # Test database constraints
+
+    def test_cant_create_duplicate_internal_user(self):
+        homer = User.objects.get(username="homer")
+
+        Reviewer.objects.create(internal=homer)
+
+        with self.assertRaises(IntegrityError):
+            Reviewer.objects.create(internal=homer)
+
+    def test_cant_create_duplicate_external_user(self):
+        bart = ExternalReviewer.objects.create(email="bart@example.com")
+
+        Reviewer.objects.create(external=bart)
+
+        with self.assertRaises(IntegrityError):
+            Reviewer.objects.create(external=bart)
+
+    def test_cant_create_both_internal_and_external(self):
+        homer = User.objects.get(username="homer")
+        bart = ExternalReviewer.objects.create(email="bart@example.com")
+
+        with self.assertRaises(IntegrityError):
+            Reviewer.objects.create(internal=homer, external=bart)

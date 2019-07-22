@@ -32,14 +32,18 @@ def get_review_form_class():
 
 
 class BaseReviewAssigneeFormSet(forms.BaseFormSet):
+    def add_fields(self, form, index):
+        super().add_fields(form, index)
+        form.fields[DELETION_FIELD_NAME].widget = forms.HiddenInput()
+
     def clean(self):
-        # Confirm that at least one assignee has been specified.
+        # Confirm that at least one reviewer has been specified.
         # Do this as a custom validation step (rather than passing min_num=1 /
         # validate_min=True to inlineformset_factory) so that we can have a
         # custom error message.
         if (self.total_form_count() - len(self.deleted_forms) < 1):
             raise ValidationError(
-                ugettext("Please select one or more assignees."),
+                ugettext("Please select one or more reviewers."),
                 code='too_few_forms'
             )
 
@@ -97,4 +101,5 @@ ReviewAssigneeFormSet = forms.formset_factory(
     ReviewAssigneeForm,
     formset=BaseReviewAssigneeFormSet,
     extra=0,
+    can_delete=True
 )
