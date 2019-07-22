@@ -4,4 +4,4 @@
 {% blocktrans with full_name=submitted_by.get_full_name|safe page_title=page.title|safe %}
 {{ full_name }} has requested a review from you on the page "{{ page_title }}". To review the page and provide your feedback, please visit this link:{% endblocktrans %}
 
-{{ review_url }}
+{{ review_url|safe }}
