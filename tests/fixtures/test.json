@@ -78,5 +78,12 @@
         "password": "md5$seasalt$1e9bf2bf5606aa5c39852cc30f0f6f22",
         "email": "homer@example.com"
     }
+},
+{
+    "pk": 1,
+    "model": "wagtail_review.ExternalReviewer",
+    "fields": {
+        "email": "lisa@example.com"
+    }
 }
 ]

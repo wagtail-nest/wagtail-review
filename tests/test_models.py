@@ -6,8 +6,9 @@ from django.utils import timezone
 
 from wagtail.core.models import Page
 
-from wagtail_review.models import ExternalReviewer, Reviewer, Share
+from wagtail_review.models import Comment, ExternalReviewer, Reviewer, Share
 
+from .factories import ReviewerFactory
 
 class TestShareModel(TestCase):
     fixtures = ['test.json']
@@ -128,3 +129,27 @@ class TestReviewerModel(TestCase):
 
         with self.assertRaises(IntegrityError):
             Reviewer.objects.create(internal=homer, external=bart)
+
+
+class TestCommentModel(TestCase):
+    fixtures = ['test.json']
+
+    def setUp(self):
+        reviewer = ReviewerFactory.create_internal()
+
+        self.comment = Comment.objects.create(
+            page_revision=Page.objects.get(id=2).save_revision(),
+            reviewer=reviewer,
+            quote="Test",
+            text="Foo",
+            content_path="title",
+            start_xpath=".",
+            start_offset=0,
+            end_xpath=".",
+            end_offset =0,
+        )
+
+    def test_get_frontend_url(self):
+        reviewer = ReviewerFactory.create_external()
+
+        self.assertTrue(self.comment.get_frontend_url(reviewer))
