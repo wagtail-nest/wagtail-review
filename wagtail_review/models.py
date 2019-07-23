@@ -233,9 +233,11 @@ class ReviewRequest(models.Model):
 
             context = {
                 'email': email,
+                'user': reviewer.internal,
                 'reviewer': reviewer,
                 'review_request': self,
                 'page': self.page_revision.as_page_object(),
+                'submitter': self.submitted_by,
                 'review_url': self.get_review_url(reviewer),
             }
 
