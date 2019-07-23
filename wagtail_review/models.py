@@ -1,3 +1,4 @@
+import functools
 import random
 import string
 
@@ -15,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from wagtail.admin.utils import send_mail
 from wagtail.core.models import UserPagePermissionsProxy
+from wagtail.core.utils import resolve_model_string
 
 from .token import Token
 
@@ -213,14 +215,53 @@ class ReviewRequestQuerySet(models.QuerySet):
         return self.filter(is_closed=True)
 
 
+@functools.lru_cache()
+def get_review_types():
+    REVIEW_TYPES = getattr(settings, 'WAGTAILREVIEW_REVIEW_TYPES', {
+        'default': {
+            'MODEL': 'wagtail_review.ReviewRequest',
+        }
+    })
+
+    def _resolve_model_string(model_string):
+        model = resolve_model_string(review_type_config['MODEL'])
+
+        if not issubclass(model, ReviewRequest):
+            raise TypeError("Review type models must decend from wagtail_review.ReviewType")
+
+        return model
+
+    return {
+        review_type_name: {
+            'MODEL': _resolve_model_string(review_type_config['MODEL']),
+        }
+        for review_type_name, review_type_config in REVIEW_TYPES.items()
+    }
+
+
 class ReviewRequest(models.Model):
     page_revision = models.ForeignKey('wagtailcore.PageRevision', on_delete=models.CASCADE, related_name='wagtailreview_reviewrequests')
     submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+')
     submitted_at = models.DateTimeField(auto_now_add=True)
     assignees = models.ManyToManyField(Reviewer)
     is_closed = models.BooleanField(default=False)
+    review_type = models.CharField(max_length=255)
 
     objects = ReviewRequestQuerySet.as_manager()
+
+    @cached_property
+    def review_type_class(self):
+        if self.review_type == '':
+            return ReviewRequest
+
+        return get_review_types()[self.review_type]
+
+    @cached_property
+    def specific(self):
+        if self.__class__ == self.review_type_class:
+            return self
+
+        return self.review_type_class.objects.get(id=self.id)
 
     def get_review_url(self, reviewer):
         review_token = Token(reviewer, self.page_revision_id, self)
