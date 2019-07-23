@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from rest_framework import generics, status, views
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 import jwt
 
@@ -61,10 +62,10 @@ class CommentList(ReviewTokenMixin, generics.ListCreateAPIView):
     serializer_class = serializers.CommentSerializer
 
     def post(self, *args, **kwargs):
-        if self.perms.can_comment():
-            return super().post(*args, **kwargs)
-        else:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+        if not self.perms.can_comment():
+            raise PermissionDenied()
+
+        return super().post(*args, **kwargs)
 
     def get_queryset(self):
         return models.Comment.objects.filter(page_revision=self.page_revision)
@@ -79,14 +80,14 @@ class Comment(ReviewTokenMixin, generics.RetrieveUpdateDestroyAPIView):
     def update(self, *args, **kwargs):
         comment = self.get_object()
         if comment.reviewer != self.reviewer:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied()
 
         return super().update(*args, **kwargs)
 
     def destroy(self, *args, **kwargs):
         comment = self.get_object()
         if comment.reviewer != self.reviewer:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied()
 
         return super().destroy(*args, **kwargs)
 
@@ -112,10 +113,10 @@ class CommentReplyList(ReviewTokenMixin, generics.ListCreateAPIView):
     serializer_class = serializers.CommentReplySerializer
 
     def post(self, *args, **kwargs):
-        if self.perms.can_comment():
-            return super().post(*args, **kwargs)
-        else:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+        if not self.perms.can_comment():
+            raise PermissionDenied()
+
+        return super().post(*args, **kwargs)
 
     def get_queryset(self):
         return models.CommentReply.objects.filter(comment_id=self.kwargs['pk']).order_by('created_at')
@@ -131,14 +132,14 @@ class CommentReply(ReviewTokenMixin, generics.RetrieveUpdateDestroyAPIView):
     def update(self, *args, **kwargs):
         reply = self.get_object()
         if reply.reviewer != self.reviewer:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied()
 
         return super().update(*args, **kwargs)
 
     def destroy(self, *args, **kwargs):
         reply = self.get_object()
         if reply.reviewer != self.reviewer:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied()
 
         return super().destroy(*args, **kwargs)
 
@@ -152,7 +153,7 @@ class Respond(ReviewTokenMixin, generics.CreateAPIView):
 
     def post(self, *args, **kwargs):
         if self.review_request is None or self.review_request.is_closed:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied()
 
         return super().post(*args, **kwargs)
 
