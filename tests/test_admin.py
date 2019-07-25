@@ -3,13 +3,16 @@ import json
 from django.contrib.auth.models import User
 from django.core import mail
 from django.test import TestCase
+from django.urls import reverse
 
 from wagtail.core.models import Page
 
 from wagtail_review.models import ReviewRequest
 
+from .factories import ReviewRequestFactory
 
-class TestAdminViews(TestCase):
+
+class TestCreateReview(TestCase):
     fixtures = ['test.json']
 
     def setUp(self):
@@ -161,3 +164,64 @@ class TestAdminViews(TestCase):
         self.assertEqual(len(mail.outbox), 2)
         email_recipients = set(email.to[0] for email in mail.outbox)
         self.assertEqual(email_recipients, {'someone@example.com', 'spongebob@example.com'})
+
+
+class TestAuditTrail(TestCase):
+    fixtures = ['test.json']
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='admin', email='admin@example.com', password='password')
+        self.client.login(username='admin', password='password')
+        self.homepage = Page.objects.get(url_path='/home/').specific
+
+        self.page_revision = self.homepage.save_revision()
+        self.review_request = ReviewRequestFactory.create(page_revision=self.page_revision, submitted_by=self.user)
+
+    def test_get_dashboard(self):
+        response = self.client.get(reverse('wagtail_review_admin:dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_audit_trail(self):
+        response = self.client.get(reverse('wagtail_review_admin:audit_trail', args=[self.homepage.id]))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_close_review(self):
+        self.assertFalse(self.review_request.is_closed)
+
+        response = self.client.post(reverse('wagtail_review_admin:close_review', args=[self.review_request.id]))
+        self.assertRedirects(response, reverse('wagtail_review_admin:audit_trail', args=[self.homepage.id]))
+
+        # The review should be closed
+        self.review_request.refresh_from_db()
+        self.assertTrue(self.review_request.is_closed)
+
+        # The revision shouldn't have been published
+        self.homepage.refresh_from_db()
+        self.assertNotEqual(self.homepage.live_revision, self.page_revision)
+
+    def test_close_and_publish_review(self):
+        self.assertFalse(self.review_request.is_closed)
+
+        response = self.client.post(reverse('wagtail_review_admin:close_and_publish', args=[self.review_request.id]))
+        self.assertRedirects(response, reverse('wagtail_review_admin:audit_trail', args=[self.homepage.id]))
+
+        # The review should be closed
+        self.review_request.refresh_from_db()
+        self.assertTrue(self.review_request.is_closed)
+
+        # The revision should have been published
+        self.homepage.refresh_from_db()
+        self.assertEqual(self.homepage.live_revision, self.page_revision)
+
+    def test_reopen_review(self):
+        self.review_request.is_closed = True
+        self.review_request.save()
+
+        response = self.client.post(reverse('wagtail_review_admin:reopen_review', args=[self.review_request.id]))
+        self.assertRedirects(response, reverse('wagtail_review_admin:audit_trail', args=[self.homepage.id]))
+
+        # The review should be open again
+        self.review_request.refresh_from_db()
+        self.assertFalse(self.review_request.is_closed)

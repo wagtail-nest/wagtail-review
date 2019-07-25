@@ -70,3 +70,33 @@ class CommentReplyFactory(factory.django.DjangoModelFactory):
     comment = None  # Set in test
     reviewer = factory.LazyAttribute(lambda o: ReviewerFactory.create_internal())
     text = "This is the reply text"
+
+
+class ReviewRequestFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.ReviewRequest
+
+    page_revision = None  # Set in test
+    submitted_by = factory.SubFactory(UserFactory)
+    is_closed = False
+
+    @factory.post_generation
+    def assignees(self, create, extracted, **kwargs):
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        if extracted:
+            # A list of groups were passed in, use them
+            for assignee in extracted:
+                self.assignees.add(group)
+
+
+class ReviewResponseFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.ReviewResponse
+
+    request = None  # Set in test
+    submitted_by = factory.LazyAttribute(lambda o: ReviewerFactory.create_internal())
+    status = models.ReviewResponse.STATUS_APPROVED
+    comment = "This is a comment"
