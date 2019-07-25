@@ -3,9 +3,7 @@ from datetime import timedelta
 from rest_framework import generics, status, views
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-import jwt
 
-from django.conf import settings
 from django.db import transaction
 from django.db.models import Case, F, Value, When
 from django.http import Http404
@@ -17,32 +15,42 @@ from django.views.decorators.csrf import csrf_exempt
 from wagtail.core.models import PageRevision
 
 from .. import models
+from ..token import Token
 from . import serializers
 
 
 class ReviewTokenMixin:
     authentication_classes = []
 
-    def process_review_token(self, data):
-        self.reviewer = get_object_or_404(models.Reviewer, id=data['rvid'])
-        self.page_revision = get_object_or_404(PageRevision.objects.select_related('page'), id=data['prid'])
+    def process_review_token(self, token):
+        try:
+            self.reviewer = token.reviewer
+            self.page_revision = token.page_revision
+        except (models.Reviewer.DoesNotExist, models.PageRevision.DoesNotExist):
+            raise Http404
+
         self.perms = self.reviewer.page_perms(self.page_revision.page)
         self.share = self.perms.share
 
         if self.share is not None:
             self.share.log_access()
 
-        if 'rrid' in data:
-            self.review_request = get_object_or_404(models.ReviewRequest, id=data['rrid'])
+        if token.review_request_id:
+            try:
+                self.review_request = token.review_request
+            except models.ReviewRequest.DoesNotExist:
+                raise Http404
+
+            if self.review_request.is_closed:
+                self.review_request = None
         else:
             self.review_request = None
 
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         if self.request.method != 'OPTIONS':
-            review_token = self.request.META.get('HTTP_X_REVIEW_TOKEN')
-            data = jwt.decode(review_token, settings.SECRET_KEY, algorithms=['HS256'])
-            self.process_review_token(data)
+            token = Token.decode(self.request.META.get('HTTP_X_REVIEW_TOKEN'))
+            self.process_review_token(token)
 
         return super().dispatch(*args, **kwargs)
 

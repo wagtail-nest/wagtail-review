@@ -47,7 +47,7 @@ class Token:
 
     @classmethod
     def decode(cls, token):
-        data = jwt.decode(review_token, settings.SECRET_KEY, algorithms=['HS256'])
+        data = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         reviewer_id = data.get(REVIEWER_ID_KEY)
         page_revision_id = data.get(PAGE_REVISION_ID_KEY)
         review_request_id = data.get(REVIEW_REQUEST_ID_KEY)
