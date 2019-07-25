@@ -26,6 +26,16 @@ class ExternalReviewerFactory(factory.django.DjangoModelFactory):
     email = factory.Faker('email')
 
 
+class ShareFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.Share
+
+    external_user = factory.SubFactory(ExternalReviewerFactory)
+    page = None  # Set in test
+    shared_by = factory.SubFactory(UserFactory)
+    can_comment = True
+
+
 class ReviewerFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Reviewer
