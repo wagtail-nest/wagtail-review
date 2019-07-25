@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 
 import jwt
-
 from wagtail.core.models import PageRevision
 
 from wagtail_review import models

@@ -10,6 +10,7 @@ from wagtail_review.models import Comment, ExternalReviewer, Reviewer, Share
 
 from .factories import ReviewerFactory
 
+
 class TestShareModel(TestCase):
     fixtures = ['test.json']
 

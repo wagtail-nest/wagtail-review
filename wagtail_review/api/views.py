@@ -1,9 +1,5 @@
 from datetime import timedelta
 
-from rest_framework import generics, status, views
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.response import Response
-
 from django.db import transaction
 from django.db.models import Case, F, Value, When
 from django.http import Http404
@@ -12,6 +8,9 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
+from rest_framework import generics, status, views
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.response import Response
 from wagtail.core.models import PageRevision
 
 from .. import models

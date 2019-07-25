@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import messages as django_messages
-from django.templatetags.static import static
 from django.shortcuts import redirect
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
@@ -14,9 +14,8 @@ from wagtail.admin.menu import MenuItem
 from wagtail.core import hooks
 
 from wagtail_review import admin_urls
-from wagtail_review.forms import get_review_form_class, ReviewAssigneeFormSet
+from wagtail_review.forms import ReviewAssigneeFormSet, get_review_form_class
 from wagtail_review.models import ReviewRequest
-
 
 # Whether to use the construct_page_action_menu hook to customise the page editor menu;
 # currently disabled, but will become a Wagtail version check as and when

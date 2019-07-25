@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+
 import factory
 
 from wagtail_review import models

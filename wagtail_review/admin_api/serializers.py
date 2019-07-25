@@ -1,8 +1,7 @@
 from rest_framework import serializers
 
-from ..api.serializers import CommentSerializer
-
 from .. import models
+from ..api.serializers import CommentSerializer
 
 
 class ExternalReviewerSerializer(serializers.ModelSerializer):

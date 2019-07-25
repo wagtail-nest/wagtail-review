@@ -2,7 +2,6 @@ from django.conf.urls import url
 
 from . import views
 
-
 app_name = 'wagtail_review_api'
 urlpatterns = [
     url(r'^$', views.Home.as_view(), name='base'),

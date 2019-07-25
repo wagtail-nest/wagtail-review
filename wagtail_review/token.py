@@ -2,9 +2,7 @@ from django.conf import settings
 from django.utils.functional import cached_property
 
 import jwt
-
 from wagtail.core.models import PageRevision
-
 
 REVIEWER_ID_KEY = 'rvid'
 PAGE_REVISION_ID_KEY = 'prid'

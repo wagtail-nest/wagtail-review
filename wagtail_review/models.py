@@ -4,7 +4,7 @@ import string
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Case, Value, When, Q
+from django.db.models import Case, Q, Value, When
 from django.db.models.constraints import CheckConstraint, UniqueConstraint
 from django.template.loader import render_to_string
 from django.urls import reverse

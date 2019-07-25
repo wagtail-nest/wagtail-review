@@ -1,9 +1,10 @@
 from __future__ import absolute_import, unicode_literals
 
-from django.conf.urls import url, include
+from django.conf.urls import include, url
 from django.views.generic import RedirectView
-from wagtail_review.views import admin as admin_views
+
 from wagtail_review.admin_api import urls as api_urls
+from wagtail_review.views import admin as admin_views
 
 app_name = 'wagtail_review'
 

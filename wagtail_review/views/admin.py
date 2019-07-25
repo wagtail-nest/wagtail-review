@@ -11,9 +11,8 @@ from wagtail.admin import messages
 from wagtail.admin.modal_workflow import render_modal_workflow
 from wagtail.admin.views import generic
 
-from wagtail_review.forms import get_review_form_class, ReviewAssigneeFormSet
+from wagtail_review.forms import ReviewAssigneeFormSet, get_review_form_class
 from wagtail_review.models import Reviewer, ReviewRequest, get_review_url
-
 
 User = get_user_model()
 

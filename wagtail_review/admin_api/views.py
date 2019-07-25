@@ -1,13 +1,12 @@
-from rest_framework import generics
-from rest_framework.authentication import SessionAuthentication
-from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
-
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
+from rest_framework import generics
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 from wagtail.core.models import Page
 
 from .. import models

@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+
 from wagtail.core.models import Page
 
 from wagtail_review.models import Share

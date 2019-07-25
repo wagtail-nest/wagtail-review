@@ -1,20 +1,22 @@
 import unittest
 
-import pytz
-from dateutil.parser import parse as parse_date
 from django.contrib.auth.models import User
 from django.core import mail
 from django.db.utils import IntegrityError
 from django.test import TestCase
-from django.utils import timezone
 from django.urls import reverse
+from django.utils import timezone
+
+import pytz
+from dateutil.parser import parse as parse_date
 from rest_framework.test import APIClient
 from wagtail.core.models import Page
 
-from wagtail_review.models import Comment, CommentReply, ExternalReviewer, Reviewer, ReviewRequest, ReviewResponse, Share
+from wagtail_review.models import (
+    Comment, CommentReply, ExternalReviewer, Reviewer, ReviewRequest, ReviewResponse, Share)
 from wagtail_review.token import Token
 
-from .factories import ReviewerFactory, CommentFactory, CommentReplyFactory, ShareFactory
+from .factories import CommentFactory, CommentReplyFactory, ReviewerFactory, ShareFactory
 
 
 class AdminAPITestCase(TestCase):
