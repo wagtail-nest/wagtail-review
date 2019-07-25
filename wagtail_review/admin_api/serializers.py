@@ -25,7 +25,7 @@ class ShareSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Share
-        fields = ['id', 'user', 'shared_by', 'shared_at', 'first_accessed_at', 'last_accessed_at', 'expires_at']
+        fields = ['id', 'user', 'shared_at', 'first_accessed_at', 'last_accessed_at', 'expires_at']
 
 
 class CommentSerializerWithFrontendURL(CommentSerializer):
