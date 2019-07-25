@@ -1,8 +1,4 @@
-import random
-import string
-
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Case, Q, Value, When
 from django.db.models.constraints import CheckConstraint, UniqueConstraint
@@ -119,8 +115,7 @@ class Reviewer(models.Model):
         constraints = [
             # Either internal or external must be set and not both
             CheckConstraint(
-                check=Q(internal__isnull=False, external__isnull=True) |
-                      Q(internal__isnull=True, external__isnull=False),
+                check=Q(internal__isnull=False, external__isnull=True) | Q(internal__isnull=True, external__isnull=False),
                 name='either_internal_or_external'
             ),
 
@@ -209,7 +204,7 @@ class ReviewRequestQuerySet(models.QuerySet):
     def open(self):
         return self.filter(is_closed=False)
 
-    def closed(Self):
+    def closed(self):
         return self.filter(is_closed=True)
 
 

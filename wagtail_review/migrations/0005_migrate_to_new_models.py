@@ -92,7 +92,7 @@ def migrate_into_new_models(apps, schema_editor):
     models = Models(apps)
 
     for review in models.Review.objects.all().iterator():
-        review_request = review_to_review_request(models, review)
+        review_to_review_request(models, review)
 
 
 class Migration(migrations.Migration):

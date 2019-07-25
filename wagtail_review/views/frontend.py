@@ -1,10 +1,6 @@
 from django.conf import settings
-from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse
-from django.middleware.csrf import get_token as get_csrf_token
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
+from django.shortcuts import get_object_or_404
 
 import jwt
 from wagtail.core.models import PageRevision
