@@ -97,10 +97,18 @@ def handle_submit_for_review(request, page):
             raise Exception("Reviewer formset failed validation")
 
         form.save()
-        reviewer_formset.save()
 
         # create a reviewer record for the current user
         review.reviewers.create(user=review.submitter)
+
+        review_users = {review.submitter}
+        instances = reviewer_formset.save(commit=False)
+        for instance in instances:
+            if instance.user in review_users:
+                continue
+            if instance.user:
+                review_users.add(instance.user)
+            instance.save()
 
         review.send_request_emails()
 

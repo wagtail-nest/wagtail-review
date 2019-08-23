@@ -13,7 +13,7 @@ class TestAdminViews(TestCase):
     fixtures = ['test.json']
 
     def setUp(self):
-        User.objects.create_superuser(username='admin', email='admin@example.com', password='password')
+        self.user = User.objects.create_superuser(username='admin', email='admin@example.com', password='password')
         self.assertTrue(
             self.client.login(username='admin', password='password')
         )
@@ -128,11 +128,12 @@ class TestAdminViews(TestCase):
         self.assertEqual(email_recipients, {'someone@example.com', 'spongebob@example.com'})
 
     def test_post_create_form(self):
+        review_user = User.objects.get(username='spongebob')
         response = self.client.post('/admin/pages/add/tests/simplepage/2/', {
             'title': "Subpage submitted",
             'slug': 'subpage-submitted',
 
-            'create_review_reviewers-TOTAL_FORMS': 2,
+            'create_review_reviewers-TOTAL_FORMS': 4,
             'create_review_reviewers-INITIAL_FORMS': 0,
             'create_review_reviewers-MIN_NUM_FORMS': 0,
             'create_review_reviewers-MAX_NUM_FORMS': 1000,
@@ -141,9 +142,17 @@ class TestAdminViews(TestCase):
             'create_review_reviewers-0-email': 'someone@example.com',
             'create_review_reviewers-0-DELETE': '',
 
-            'create_review_reviewers-1-user': User.objects.get(username='spongebob').pk,
+            'create_review_reviewers-1-user': review_user.pk,
             'create_review_reviewers-1-email': '',
             'create_review_reviewers-1-DELETE': '',
+
+            'create_review_reviewers-2-user': review_user.pk,
+            'create_review_reviewers-2-email': '',
+            'create_review_reviewers-2-DELETE': '',
+
+            'create_review_reviewers-3-user': self.user.pk,
+            'create_review_reviewers-3-email': self.user.email,
+            'create_review_reviewers-3-DELETE': '',
 
             'action-submit-for-review': '1',
         })
@@ -160,3 +169,6 @@ class TestAdminViews(TestCase):
         self.assertEqual(len(mail.outbox), 2)
         email_recipients = set(email.to[0] for email in mail.outbox)
         self.assertEqual(email_recipients, {'someone@example.com', 'spongebob@example.com'})
+
+        review_view = self.client.get('/admin/wagtail_review/reviews/%s/view/' % review.pk)
+        self.assertEqual(review_view.status_code, 200)
