@@ -37,13 +37,6 @@ class SubmitForReviewMenuItem(ActionMenuItem):
         }
 
 
-@hooks.register('construct_page_action_menu')
-def remove_submit_to_moderator_option(menu_items, request, context):
-    for (i, menu_item) in enumerate(menu_items):
-        if menu_item.name == 'action-submit':
-            menu_items[i] = SubmitForReviewMenuItem()
-
-
 def handle_submit_for_review(request, page):
     if 'action-submit-for-review' in request.POST:
         ReviewForm = get_review_form_class()
