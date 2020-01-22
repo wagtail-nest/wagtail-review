@@ -29,16 +29,16 @@ class ReviewTokenMixin:
         if self.share is not None:
             self.share.log_access()
 
-        if token.review_request_id:
+        if token.task_state_id:
             try:
-                self.review_request = token.review_request
-            except models.ReviewRequest.DoesNotExist:
+                self.task_state = token.task_state
+            except models.TaskState.DoesNotExist:
                 raise Http404
 
-            if self.review_request.is_closed:
-                self.review_request = None
+            if self.task_state.status != models.TaskState.STATUS_IN_PROGRESS:
+                self.task_state = None
         else:
-            self.review_request = None
+            self.task_state = None
 
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
@@ -56,7 +56,7 @@ class Home(ReviewTokenMixin, views.APIView):
         return Response({
             'you': serializers.ReviewerSerializer(self.reviewer).data,
             'can_comment': self.reviewer.page_perms(self.page_revision.page).can_comment(),
-            'can_review': self.review_request is not None,
+            'can_review': self.task_state is not None,
         })
 
 
@@ -149,14 +149,11 @@ class CommentReply(ReviewTokenMixin, generics.RetrieveUpdateDestroyAPIView):
         return models.CommentReply.objects.filter(comment_id=self.kwargs['comment_pk'])
 
 
-class Respond(ReviewTokenMixin, generics.CreateAPIView):
-    queryset = models.ReviewResponse.objects.all()
-    serializer_class = serializers.NewReviewResponseSerializer
-
+class Respond(ReviewTokenMixin, views.APIView):
     def post(self, *args, **kwargs):
-        if self.review_request is None or self.review_request.is_closed:
+        if self.task_state is None or self.task_state.status != self.task_state.STATUS_IN_PROGRESS:
             raise PermissionDenied()
-
+        import pdb; pdb.set_trace()
         return super().post(*args, **kwargs)
 
     def perform_create(self, serializer):

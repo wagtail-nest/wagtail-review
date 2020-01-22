@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Case, Q, Value, When
 from django.db.models.constraints import CheckConstraint, UniqueConstraint
 from django.template.loader import render_to_string
@@ -10,9 +10,13 @@ from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
 from wagtail.admin.utils import send_mail
-from wagtail.core.models import UserPagePermissionsProxy
+from wagtail.admin.edit_handlers import FieldPanel, Task
+from wagtail.core.models import UserPagePermissionsProxy, TaskState
+from django.shortcuts import redirect
 
 from .token import Token
+
+from modelcluster.fields import ParentalManyToManyField
 
 
 def get_review_url_impl(token):
@@ -296,3 +300,60 @@ class ReviewResponse(models.Model):
     comment = models.TextField(blank=True)
 
     objects = ReviewResponseQuerySet.as_manager()
+
+
+class ReviewTaskState(TaskState):
+    comment = models.TextField(blank=True)
+    decided_by = models.ForeignKey(Reviewer, on_delete=models.CASCADE, related_name='+')
+    decided_at = models.DateTimeField()
+
+
+class ReviewTask(Task):
+    reviewers = models.ManyToManyField(Reviewer)
+
+    panels = Task.panels + [FieldPanel('reviewers')]
+
+    def start(self, workflow_state, user=None):
+        if workflow_state.page.locked_by:
+            # If the person who locked the page isn't a reviewer, unlock the page
+            if not self.reviewers.filter(internal__pk=workflow_state.page.locked_by.pk).exists():
+                workflow_state.page.locked = False
+                workflow_state.page.locked_by = None
+                workflow_state.page.locked_at = None
+                workflow_state.page.save(update_fields=['locked', 'locked_by', 'locked_at'])
+
+        return super().start(workflow_state, user=user)
+
+    def user_can_access_editor(self, page, user):
+        return self.reviewers.filter(internal__pk=user.pk).exists()
+
+    def user_can_lock(self, page, user):
+        return self.reviewers.filter(internal__pk=user.pk).exists()
+
+    def user_can_unlock(self, page, user):
+        return False
+
+    def get_actions(self, page, user):
+        if self.reviewers.filter(internal__pk=user.pk).exists():
+            return [
+                ('approve', _("Approve")),
+                ('reject', _("Reject")),
+                ('redirect_to_frontend', _("View on Frontend")),
+            ]
+        else:
+            return []
+
+    @transaction.atomic
+    def on_action(self, task_state, user, action_name):
+        if action_name == 'approve':
+            task_state.approve(user=user)
+        elif action_name == 'reject':
+            task_state.reject(user=user)
+        elif action_name == 'redirect_to_frontend':
+            review_token = Token(Reviewer.objects.get_or_create(internal=user)[0], task_state.page_revision, task_state)
+            return redirect(get_review_url(review_token))
+
+
+    class Meta:
+        verbose_name = _('Review task')
+        verbose_name_plural = _('Review tasks')
