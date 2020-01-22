@@ -22,13 +22,13 @@ def review(request, token):
     if perms.share is not None:
         perms.share.log_access()
 
-    if 'rrid' in data:
-        review_request = get_object_or_404(models.ReviewRequest, id=data['rrid'])
+    if 'tsid' in data:
+        task_state = get_object_or_404(models.TaskState, id=data['tsid'])
     else:
-        review_request = None
+        task_state = None
 
     dummy_request = page.dummy_request(request)
     dummy_request.wagtailreview_token = token
     dummy_request.wagtailreview_perms = perms
-    dummy_request.wagtailreview_review_request = review_request
+    dummy_request.wagtailreview_task_state = task_state
     return page.serve_preview(dummy_request, page.default_preview_mode)

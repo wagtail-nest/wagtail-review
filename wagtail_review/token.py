@@ -2,15 +2,15 @@ from django.conf import settings
 from django.utils.functional import cached_property
 
 import jwt
-from wagtail.core.models import PageRevision
+from wagtail.core.models import PageRevision, TaskState
 
 REVIEWER_ID_KEY = 'rvid'
 PAGE_REVISION_ID_KEY = 'prid'
-REVIEW_REQUEST_ID_KEY = 'rrid'
+TASK_STATE_ID_KEY = 'tsid'
 
 
 class Token:
-    def __init__(self, reviewer_id, page_revision_id, review_request_id=None):
+    def __init__(self, reviewer_id, page_revision_id, task_state_id=None):
         from .models import Reviewer
         from .models import ReviewRequest
 
@@ -26,11 +26,11 @@ class Token:
         else:
             self.page_revision_id = page_revision_id
 
-        if isinstance(review_request_id, ReviewRequest):
-            self.__dict__['review_request'] = review_request_id
-            self.review_request_id = self.review_request.id
+        if isinstance(task_state_id, TaskState):
+            self.__dict__['task_state'] = task_state_id
+            self.task_state_id = self.task_state.id
         else:
-            self.review_request_id = review_request_id
+            self.task_state_id = task_state_id
 
     def encode(self):
         payload = {
@@ -38,8 +38,8 @@ class Token:
             PAGE_REVISION_ID_KEY: self.page_revision_id,
         }
 
-        if self.review_request_id is not None:
-            payload[REVIEW_REQUEST_ID_KEY] = self.review_request_id
+        if self.task_state_id is not None:
+            payload[TASK_STATE_ID_KEY] = self.task_state_id
 
         return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
 
@@ -48,8 +48,8 @@ class Token:
         data = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         reviewer_id = data.get(REVIEWER_ID_KEY)
         page_revision_id = data.get(PAGE_REVISION_ID_KEY)
-        review_request_id = data.get(REVIEW_REQUEST_ID_KEY)
-        return cls(reviewer_id, page_revision_id, review_request_id)
+        task_state_id = data.get(TASK_STATE_ID_KEY)
+        return cls(reviewer_id, page_revision_id, task_state_id)
 
     @cached_property
     def reviewer(self):
@@ -61,7 +61,7 @@ class Token:
         return PageRevision.objects.get(id=self.page_revision_id)
 
     @cached_property
-    def review_request(self):
-        if self.review_request_id is not None:
-            from .models import ReviewRequest
-            return ReviewRequest.objects.get(id=self.review_request_id)
+    def task_state(self):
+        if self.task_state_id is not None:
+            from .models import TaskState
+            return TaskState.objects.get(id=self.task_state_id)
