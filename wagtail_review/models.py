@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from wagtail.admin.utils import send_mail
 from wagtail.admin.edit_handlers import FieldPanel, Task
-from wagtail.core.models import UserPagePermissionsProxy, TaskState
+from wagtail.core.models import Page, UserPagePermissionsProxy, TaskState
 from django.shortcuts import redirect
 
 from .token import Token
@@ -112,8 +112,8 @@ class Reviewer(models.Model):
         else:
             return self.external.email
 
-    def page_perms(self, page_id):
-        return ReviewerPagePermissions(self, page_id)
+    def page_perms(self, page):
+        return ReviewerPagePermissions(self, page)
 
     class Meta:
         constraints = [
@@ -132,14 +132,14 @@ class Reviewer(models.Model):
 
 
 class ReviewerPagePermissions:
-    def __init__(self, reviewer, page_id):
+    def __init__(self, reviewer, page):
         self.reviewer = reviewer
-        self.page_id = page_id
+        self.page = page
 
     @cached_property
     def share(self):
         if self.reviewer.external_id:
-            return Share.objects.filter(external_user_id=self.reviewer.external_id, page_id=self.page_id).first()
+            return Share.objects.filter(external_user_id=self.reviewer.external_id, page=self.page).first()
 
     def can_view(self):
         """
@@ -154,7 +154,11 @@ class ReviewerPagePermissions:
                 # Share has expired
                 return False
 
-        return True
+        try:
+            reviewers = self.page.current_workflow_task.reviewers
+            return reviewers.filter(pk=self.reviewer.pk).exists()
+        except AttributeError:
+            return False
 
     def can_comment(self):
         """
@@ -168,6 +172,15 @@ class ReviewerPagePermissions:
             return False
 
         return True
+
+    def can_respond(self):
+        """
+        Returns True if the reviewer can approve or reject the stage
+        """
+        actions = {action[0] for action in self.page.current_workflow_task.get_actions(page, user=None, reviewer=self.reviewer)}
+        if 'approve' in actions or 'reject' in actions:
+            return True
+        return False
 
 
 class Comment(models.Model):
@@ -304,14 +317,30 @@ class ReviewResponse(models.Model):
 
 class ReviewTaskState(TaskState):
     comment = models.TextField(blank=True)
-    decided_by = models.ForeignKey(Reviewer, on_delete=models.CASCADE, related_name='+')
-    decided_at = models.DateTimeField()
+    decided_by = models.ForeignKey(Reviewer, on_delete=models.CASCADE, related_name='+', null=True)
+    decided_at = models.DateTimeField(null=True)
+
+    @transaction.atomic
+    def approve(self, user=None, reviewer=None, comment='', **kwargs):
+        self.comment = comment
+        self.decided_by = reviewer
+        self.decided_at = timezone.now()
+        super().approve(**kwargs)
+
+    @transaction.atomic
+    def reject(self, user=None, reviewer=None, comment='', **kwargs):
+        self.comment = comment
+        self.decided_by = reviewer
+        self.decided_at = timezone.now()
+        super().reject(**kwargs)
 
 
 class ReviewTask(Task):
     reviewers = models.ManyToManyField(Reviewer)
 
     panels = Task.panels + [FieldPanel('reviewers')]
+
+    task_state_class = ReviewTaskState
 
     def start(self, workflow_state, user=None):
         if workflow_state.page.locked_by:
@@ -333,26 +362,26 @@ class ReviewTask(Task):
     def user_can_unlock(self, page, user):
         return False
 
-    def get_actions(self, page, user):
-        if self.reviewers.filter(internal__pk=user.pk).exists():
+    def get_actions(self, page, user, reviewer=None, **kwargs):
+        if not reviewer:
+            reviewer = Reviewer.objects.get(internal__pk=user.pk)
+        if self.reviewers.filter(pk=reviewer.pk).exists() or user.is_superuser:
             return [
                 ('approve', _("Approve")),
                 ('reject', _("Reject")),
-                ('redirect_to_frontend', _("View on Frontend")),
+                ('review', _("Review")),
             ]
         else:
             return []
 
-    @transaction.atomic
-    def on_action(self, task_state, user, action_name):
+    def on_action(self, task_state, user, action_name, reviewer=None, comment='', **kwargs):
         if action_name == 'approve':
-            task_state.approve(user=user)
+            task_state.approve(user=user, reviewer=reviewer, comment=comment)
         elif action_name == 'reject':
-            task_state.reject(user=user)
-        elif action_name == 'redirect_to_frontend':
+            task_state.reject(user=user, reviewer=reviewer, comment=comment)
+        elif action_name == 'review':
             review_token = Token(Reviewer.objects.get_or_create(internal=user)[0], task_state.page_revision, task_state)
             return redirect(get_review_url(review_token))
-
 
     class Meta:
         verbose_name = _('Review task')

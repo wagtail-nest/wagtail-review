@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from rest_framework import generics, views
+from rest_framework import generics, views, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
@@ -31,7 +31,7 @@ class ReviewTokenMixin:
 
         if token.task_state_id:
             try:
-                self.task_state = token.task_state
+                self.task_state = token.task_state.specific
             except models.TaskState.DoesNotExist:
                 raise Http404
 
@@ -153,8 +153,12 @@ class Respond(ReviewTokenMixin, views.APIView):
     def post(self, *args, **kwargs):
         if self.task_state is None or self.task_state.status != self.task_state.STATUS_IN_PROGRESS:
             raise PermissionDenied()
-        import pdb; pdb.set_trace()
-        return super().post(*args, **kwargs)
-
-    def perform_create(self, serializer):
-        serializer.save(submitted_by=self.reviewer, request=self.review_request)
+        action = self.request.data['taskAction']
+        task = self.task_state.task.specific
+        page = self.task_state.workflow_state.page
+        comment = self.request.data.get('comment', '')
+        if action in {action[0] for action in task.get_actions(page, self.request.user, reviewer=self.reviewer)}:
+            task.on_action(self.task_state, self.request.user, action, reviewer=self.reviewer, comment=comment)
+            return Response()
+        else:
+            raise PermissionDenied()
