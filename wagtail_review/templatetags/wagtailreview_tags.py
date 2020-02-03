@@ -14,7 +14,7 @@ def wagtailreview(context):
 
         return {
             'allow_comments': perms.can_comment(),
-            'allow_responses': task_state is not None,
+            'allow_responses': task_state and task_state.status == task_state.STATUS_IN_PROGRESS,
             'token': token,
         }
     else:
