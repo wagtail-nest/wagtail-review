@@ -1,7 +1,18 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from .. import models
 from ..api.serializers import CommentSerializer
+
+
+class UserSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='pk')
+    full_name = serializers.ReadOnlyField(source='get_full_name')
+    username = serializers.ReadOnlyField(source='get_username')
+
+    class Meta:
+        model = get_user_model()
+        fields = ['id', 'full_name', 'username']
 
 
 class ExternalReviewerSerializer(serializers.ModelSerializer):
@@ -9,6 +20,15 @@ class ExternalReviewerSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ExternalReviewer
         fields = ['email']
+
+
+class ReviewerSerializer(serializers.ModelSerializer):
+    internal = UserSerializer()
+    external = ExternalReviewerSerializer()
+
+    class Meta:
+        model = models.Reviewer
+        fields = ['id', 'internal', 'external']
 
 
 class NewShareSerializer(serializers.Serializer):

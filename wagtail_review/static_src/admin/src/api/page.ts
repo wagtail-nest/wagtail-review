@@ -48,7 +48,7 @@ export interface CommentApi {
     frontend_url: string;
 }
 
-export default class APIClient {
+export default class PageAPIClient {
     pageId: number;
 
     constructor(pageId: number) {
