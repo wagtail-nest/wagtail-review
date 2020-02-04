@@ -13,6 +13,7 @@
   "devDependencies": {
     "@types/dateformat": "^3.0.0",
     "@types/react": "^16.8.19",
+    "@types/react-autocomplete": "^1.8.5",
     "@types/react-dom": "^16.8.4",
     "@types/react-modal": "^3.8.2",
     "@types/redux": "^3.6.0",
@@ -40,6 +41,7 @@
   "dependencies": {
     "dateformat": "^3.0.3",
     "react": "^16.8.6",
+    "react-autocomplete": "^1.8.1",
     "react-dom": "^16.8.6",
     "react-modal": "^3.8.1",
     "redux": "^4.0.1"

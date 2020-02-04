@@ -1,4 +1,8 @@
-function createTab(text: string, id: string|undefined, onClick: (e: MouseEvent) => void) {
+function createTab(
+    text: string,
+    id: string | undefined,
+    onClick: (e: MouseEvent) => void
+) {
     const liElement = document.createElement('li');
 
     if (id) {

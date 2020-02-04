@@ -1,7 +1,7 @@
-import { Store } from 'redux';
+import { Store as ReduxStore } from 'redux';
 
 import * as actions from '../actions/comments';
-import { CommentApi, CommentReplyApi } from '../api';
+import { CommentApi, CommentReplyApi } from '../api/page';
 
 export class Author {
     name: string;
@@ -77,7 +77,7 @@ export class Comment {
         date: number,
         text: string,
         replies: CommentReply[],
-        frontendUrl: string,
+        frontendUrl: string
     ) {
         this.id = id;
         this.isResolved = isResolved;
@@ -96,7 +96,7 @@ export class Comment {
             Date.parse(data.created_at),
             data.text,
             data.replies.map(CommentReply.fromApi),
-            data.frontend_url,
+            data.frontend_url
         );
     }
 }
@@ -111,7 +111,7 @@ function initialState(): State {
     return {
         isOpen: false,
         comments: [],
-        showResolvedComments: false,
+        showResolvedComments: false
     };
 }
 
@@ -130,7 +130,9 @@ export function reducer(state: State | undefined, action: actions.Action) {
             break;
         }
         case actions.SHOW_HIDE_RESOLVED_COMMENTS: {
-            state = Object.assign({}, state, { showResolvedComments: action.show });
+            state = Object.assign({}, state, {
+                showResolvedComments: action.show
+            });
             break;
         }
     }
@@ -138,4 +140,4 @@ export function reducer(state: State | undefined, action: actions.Action) {
     return state;
 }
 
-export type Store = Store<State, actions.Action>;
+export type Store = ReduxStore<State, actions.Action>;

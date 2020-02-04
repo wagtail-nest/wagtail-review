@@ -9,12 +9,14 @@ from django.utils.functional import cached_property
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
-from wagtail.admin.utils import send_mail
+from wagtail.admin.mail import send_mail
 from wagtail.admin.edit_handlers import FieldPanel, Task
 from wagtail.core.models import Page, UserPagePermissionsProxy, TaskState
 from django.shortcuts import redirect
 
+from .edit_handlers import ReviewerChooserPanel
 from .token import Token
+from .utils import normalize_email
 
 from modelcluster.fields import ParentalManyToManyField
 
@@ -39,7 +41,13 @@ class ExternalReviewer(models.Model):
     Represents an external user who doesn't have an account but may need to view
     draft revisions of pages and comment on them.
     """
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
+
+    def save(self, **kwargs):
+        # Normalize email addresses before saving or the unique constraint won't work
+        self.email = normalize_email(self.email)
+
+        super().save()
 
     def get_reviewer(self):
         user, created = Reviewer.objects.get_or_create(external=self)
@@ -338,7 +346,7 @@ class ReviewTaskState(TaskState):
 class ReviewTask(Task):
     reviewers = models.ManyToManyField(Reviewer)
 
-    panels = Task.panels + [FieldPanel('reviewers')]
+    panels = Task.panels + [ReviewerChooserPanel('reviewers')]
 
     task_state_class = ReviewTaskState
 

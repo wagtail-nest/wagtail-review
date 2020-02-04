@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as dateFormat from 'dateformat';
 
-import APIClient from '../../api';
+import PageAPIClient from '../../api/page';
 import { Comment, Store, State } from '../../state/comments';
 
 import './style.scss';
@@ -37,13 +37,21 @@ function renderComment(comment: Comment): React.ReactFragment {
                 </div>
             </div>
             <p className="comment__text">{comment.text}</p>
-            <a href={comment.frontendUrl} onClick={onClickLink} className="comment__view-on-frontend" target="_blank" rel="noopener noreferrer">View on frontend</a>
+            <a
+                href={comment.frontendUrl}
+                onClick={onClickLink}
+                className="comment__view-on-frontend"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                View on frontend
+            </a>
         </li>
     );
 }
 
 interface CommentsProps extends State {
-    api: APIClient;
+    api: PageAPIClient;
     store: Store;
 }
 
@@ -56,22 +64,26 @@ export default function Comments(props: CommentsProps) {
     }
 
     let showHideResolvedCommentsInput = <></>;
-    const numResolvedComments = comments.filter(comment => comment.isResolved).length;
+    const numResolvedComments = comments.filter(comment => comment.isResolved)
+        .length;
 
     if (numResolvedComments > 0) {
-        const onChangeShowHideResolvedComments = (e: React.ChangeEvent<HTMLInputElement>) => {
-            store.dispatch(
-                showHideResolvedComments(e.target.checked)
-            );
+        const onChangeShowHideResolvedComments = (
+            e: React.ChangeEvent<HTMLInputElement>
+        ) => {
+            store.dispatch(showHideResolvedComments(e.target.checked));
         };
 
-        showHideResolvedCommentsInput = <div className="comments__show-hide-resolved">
-            Show {numResolvedComments} resolved comments
-            <input type="checkbox"
-                onChange={onChangeShowHideResolvedComments}
-                checked={showResolvedComments}
-            />
-        </div>;
+        showHideResolvedCommentsInput = (
+            <div className="comments__show-hide-resolved">
+                Show {numResolvedComments} resolved comments
+                <input
+                    type="checkbox"
+                    onChange={onChangeShowHideResolvedComments}
+                    checked={showResolvedComments}
+                />
+            </div>
+        );
 
         if (!showResolvedComments) {
             comments = comments.filter(comment => !comment.isResolved);
@@ -83,9 +95,7 @@ export default function Comments(props: CommentsProps) {
     return (
         <div className="comments">
             {showHideResolvedCommentsInput}
-            <ul>
-                {commentsRendered}
-            </ul>
+            <ul>{commentsRendered}</ul>
         </div>
     );
 }

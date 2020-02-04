@@ -1,7 +1,7 @@
-import { Store } from 'redux';
+import { Store as ReduxStore } from 'redux';
 
 import * as actions from '../actions/share';
-import { ShareApi } from '../api';
+import { ShareApi } from '../api/page';
 
 export class Share {
     id: number;
@@ -105,4 +105,4 @@ export function reducer(state: State | undefined, action: actions.Action) {
     return state;
 }
 
-export type Store = Store<State, actions.Action>;
+export type Store = ReduxStore<State, actions.Action>;

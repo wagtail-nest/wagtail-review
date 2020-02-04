@@ -1,0 +1,22 @@
+.reviewer-chooser {
+    table {
+        width: 100%;
+    }
+
+    td {
+        padding: 10px;
+    }
+
+    &__autocomplete-option {
+        padding: 20px;
+        z-index: 100;
+
+        &--highlighted {
+            cursor: pointer;
+        }
+    }
+
+    &__remove-button {
+        float: right;
+    }
+}

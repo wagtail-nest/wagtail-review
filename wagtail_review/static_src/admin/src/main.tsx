@@ -4,21 +4,26 @@ import { createStore } from 'redux';
 
 import ShareModal from './components/ShareModal';
 import Comments from './components/Comments';
-import APIClient from './api';
+import ReviewerChooserModal from './components/ReviewerChooser';
+import PageAPIClient from './api/page';
+import ReviewerAPIClient, { ReviewerApi } from './api/reviewer';
 import { reducer as shareReducer, Share } from './state/share';
 import { Comment, reducer as commentsReducer } from './state/comments';
+import {
+    reducer as reviewerChooserReducer,
+    Reviewer
+} from './state/reviewer-chooser';
 import { initTabs } from './utils/tabs';
 import { showShareModal, hideShareModal, putShare } from './actions/share';
 import { showComments, loadComments, hideComments } from './actions/comments';
+import { putReviewer } from './actions/reviewer-chooser';
 
 declare let window: any;
 
-document.addEventListener('DOMContentLoaded', () => {
+function initPageEditor(pageId: number) {
     const shareStore = createStore(shareReducer);
     const commentsStore = createStore(commentsReducer);
-    const api = new APIClient(
-        window.wagtailPageId /* Injected by GuacamoleMenuItem in review/wagtail_hooks.py */
-    );
+    const api = new PageAPIClient(pageId);
 
     initTabs([
         {
@@ -55,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Load initial commebts
+    // Load initial commenSts
     api.getComments().then(comments => {
         commentsStore.dispatch(loadComments(comments.map(Comment.fromApi)));
     });
@@ -91,17 +96,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const renderComments = () => {
             const state = commentsStore.getState();
             ReactDOM.render(
-                <Comments
-                    api={api}
-                    store={commentsStore}
-                    {...state}
-                />,
+                <Comments api={api} store={commentsStore} {...state} />,
                 commentsContainer
             );
 
             // Update number displayed on comments tab
             if (commentsButtonATag instanceof HTMLElement) {
-                const numUnresolvedComments = state.comments.filter(comment => !comment.isResolved).length;
+                const numUnresolvedComments = state.comments.filter(
+                    comment => !comment.isResolved
+                ).length;
 
                 if (numUnresolvedComments > 0) {
                     commentsButtonATag.classList.add('errors');
@@ -115,4 +118,54 @@ document.addEventListener('DOMContentLoaded', () => {
         renderComments();
         commentsStore.subscribe(renderComments);
     }
+}
+
+function initReviewerChooserWidget(container: HTMLElement) {
+    const reviewerChooserStore = createStore(reviewerChooserReducer);
+    const api = new ReviewerAPIClient();
+
+    // Add initial reviewers
+    const initialReviewers: ReviewerApi[] = JSON.parse(
+        container.dataset.initialReviewers
+    );
+    initialReviewers.forEach(reviewer =>
+        reviewerChooserStore.dispatch(putReviewer(Reviewer.fromApi(reviewer)))
+    );
+
+    // Render reviewer chooser UI
+    const reviewerChooserContainer = document.createElement('div');
+    container.append(reviewerChooserContainer);
+
+    const renderReviewerChooser = () => {
+        ReactDOM.render(
+            <ReviewerChooserModal
+                api={api}
+                store={reviewerChooserStore}
+                inputName={container.dataset.inputName}
+                {...reviewerChooserStore.getState()}
+            />,
+            reviewerChooserContainer
+        );
+    };
+
+    renderReviewerChooser();
+    reviewerChooserStore.subscribe(renderReviewerChooser);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // DOMContentLoaded was being triggered twice locally
+    // TODO: Find out why this is happening
+    if (window.wagtailReviewInitialised) {
+        return;
+    }
+    window.wagtailReviewInitialised = true;
+
+    // wagtailPageId Injected by GuacamoleMenuItem in review/wagtail_hooks.py
+    if (window.wagtailPageId) {
+        initPageEditor(window.wagtailPageId);
+    }
+
+    document
+        .querySelectorAll("[data-component='reviewer-chooser']")
+        .forEach(initReviewerChooserWidget);
 });

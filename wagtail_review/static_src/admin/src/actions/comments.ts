@@ -19,7 +19,10 @@ interface ShowHideResolvedCommentsAction {
     show: boolean;
 }
 
-export type Action = LoadCommentsAction | ShowHideCommentsAction | ShowHideResolvedCommentsAction;
+export type Action =
+    | LoadCommentsAction
+    | ShowHideCommentsAction
+    | ShowHideResolvedCommentsAction;
 
 export function loadComments(comments: Comment[]): LoadCommentsAction {
     return {
@@ -42,7 +45,9 @@ export function hideComments(): ShowHideCommentsAction {
     };
 }
 
-export function showHideResolvedComments(show: boolean): ShowHideResolvedCommentsAction {
+export function showHideResolvedComments(
+    show: boolean
+): ShowHideResolvedCommentsAction {
     return {
         type: SHOW_HIDE_RESOLVED_COMMENTS,
         show

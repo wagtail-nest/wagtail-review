@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as dateFormat from 'dateformat';
 
-import APIClient, { NewShareValidationError } from '../../api';
+import PageAPIClient, { NewShareValidationError } from '../../api/page';
 import { Store, State, Share } from '../../state/share';
 import { hideShareModal, putShare } from '../../actions/share';
 
@@ -10,7 +10,7 @@ import WagtailReactModal from '../WagtailReactModal';
 import './style.scss';
 
 interface ShareModalProps extends State {
-    api: APIClient;
+    api: PageAPIClient;
     store: Store;
 }
 
@@ -19,8 +19,8 @@ interface ShareModalState {
 }
 
 export default class ShareModal extends React.Component<
-ShareModalProps,
-ShareModalState
+    ShareModalProps,
+    ShareModalState
 > {
     constructor(props: ShareModalProps) {
         super(props);
@@ -41,7 +41,7 @@ ShareModalState
             e: React.KeyboardEvent<HTMLInputElement>
         ) => {
             if (e.key === 'Enter') {
-                const {target} = e;
+                const { target } = e;
                 if (target instanceof HTMLInputElement) {
                     const newEmail = target.value;
 
@@ -51,9 +51,7 @@ ShareModalState
 
                     if (response.status === 'ok') {
                         target.value = '';
-                        store.dispatch(
-                            putShare(Share.fromApi(response.share))
-                        );
+                        store.dispatch(putShare(Share.fromApi(response.share)));
                     } else {
                         this.setState({ errors: response });
                     }
@@ -67,8 +65,8 @@ ShareModalState
                     <td>{share.email}</td>
                     <td>
                         {share.accessedAt
-                        ? dateFormat(share.accessedAt)
-                        : 'Never'}
+                            ? dateFormat(share.accessedAt)
+                            : 'Never'}
                     </td>
                     <td>
                         {share.expiresAt
