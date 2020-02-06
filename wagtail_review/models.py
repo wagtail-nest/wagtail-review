@@ -375,9 +375,9 @@ class ReviewTask(Task):
             reviewer = Reviewer.objects.get(internal__pk=user.pk)
         if self.reviewers.filter(pk=reviewer.pk).exists() or user.is_superuser:
             return [
+                ('review', _("Review")),
                 ('approve', _("Approve")),
                 ('reject', _("Reject")),
-                ('review', _("Review")),
             ]
         else:
             return []
