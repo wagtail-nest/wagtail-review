@@ -7,7 +7,7 @@ An extension for Wagtail allowing pages to be submitted for review (including to
 ## Requirements
 
 Django 2.2 or higher
-Wagtail 2.5 or higher
+Wagtail 2.6 or higher
 
 ## Installation
 
