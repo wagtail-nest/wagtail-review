@@ -56,7 +56,7 @@ class TestReviewerModel(TestCase):
         self.assertEqual(reviewer.get_name(), "Homer Simpson")
         self.assertEqual(reviewer.get_email(), "homer@example.com")
 
-        page_perms = reviewer.page_perms(2)
+        page_perms = reviewer.page_perms(Page.objects.get(id=2))
         self.assertTrue(page_perms.can_view())
         self.assertTrue(page_perms.can_comment())
 
@@ -67,7 +67,7 @@ class TestReviewerModel(TestCase):
         self.assertEqual(reviewer.get_name(), "bart@example.com")
         self.assertEqual(reviewer.get_email(), "bart@example.com")
 
-        page_perms = reviewer.page_perms(2)
+        page_perms = reviewer.page_perms(Page.objects.get(id=2))
         self.assertFalse(page_perms.can_view())
         self.assertFalse(page_perms.can_comment())
 
@@ -80,7 +80,7 @@ class TestReviewerModel(TestCase):
         homer = User.objects.get(username="homer")
         Share.objects.create(external_user=bart, shared_by=homer, page_id=2, can_comment=True)
 
-        page_perms = reviewer.page_perms(2)
+        page_perms = reviewer.page_perms(Page.objects.get(id=2))
         self.assertTrue(page_perms.can_view())
         self.assertTrue(page_perms.can_comment())
 
@@ -91,7 +91,7 @@ class TestReviewerModel(TestCase):
         homer = User.objects.get(username="homer")
         Share.objects.create(external_user=bart, shared_by=homer, page_id=2, can_comment=False)
 
-        page_perms = reviewer.page_perms(2)
+        page_perms = reviewer.page_perms(Page.objects.get(id=2))
         self.assertTrue(page_perms.can_view())
         self.assertFalse(page_perms.can_comment())
 
@@ -102,7 +102,7 @@ class TestReviewerModel(TestCase):
         homer = User.objects.get(username="homer")
         Share.objects.create(external_user=bart, shared_by=homer, page_id=2, can_comment=True, expires_at=timezone.now())
 
-        page_perms = reviewer.page_perms(2)
+        page_perms = reviewer.page_perms(Page.objects.get(id=2))
         self.assertFalse(page_perms.can_view())
         self.assertFalse(page_perms.can_comment())
 

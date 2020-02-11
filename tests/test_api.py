@@ -10,10 +10,10 @@ from django.utils import timezone
 import pytz
 from dateutil.parser import parse as parse_date
 from rest_framework.test import APIClient
-from wagtail.core.models import Page
+from wagtail.core.models import Page, Workflow, WorkflowTask, WorkflowState
 
 from wagtail_review.models import (
-    Comment, CommentReply, ExternalReviewer, Reviewer, ReviewRequest, ReviewResponse, Share)
+    Comment, CommentReply, ExternalReviewer, Reviewer, ReviewTask, ReviewTaskState, Share)
 from wagtail_review.token import Token
 
 from .factories import CommentFactory, CommentReplyFactory, ReviewerFactory
@@ -40,6 +40,13 @@ class APITestCase(TestCase):
             can_comment=True,
         )
 
+        # Set up a workflow
+        self.workflow = Workflow.objects.create()
+        self.workflow_task = ReviewTask.objects.create()
+        self.workflow_task.reviewers.add(self.reviewer)
+        WorkflowTask.objects.create(workflow=self.workflow, task=self.workflow_task)
+
+
 class TestHomeView(APITestCase):
     def test_get(self):
         response = self.client.get(reverse('wagtail_review:api:base'), HTTP_X_REVIEW_TOKEN=Token(self.reviewer, self.page_revision).encode())
@@ -64,13 +71,22 @@ class TestHomeView(APITestCase):
         self.assertFalse(response.json()['can_comment'])
         self.assertFalse(response.json()['can_review'])
 
-    def test_get_with_review_request(self):
-        review_request = ReviewRequest.objects.create(
-            page_revision=self.page_revision,
-            submitted_by=User.objects.get(username="homer"),
+    def test_get_with_task_state(self):
+        workflow_state = WorkflowState.objects.create(
+            workflow=self.workflow,
+            page=self.page_revision.page,
         )
 
-        response = self.client.get(reverse('wagtail_review:api:base'), HTTP_X_REVIEW_TOKEN=Token(self.reviewer, self.page_revision, review_request).encode())
+        task_state = ReviewTaskState.objects.create(
+            workflow_state=workflow_state,
+            task=self.workflow_task,
+            page_revision=self.page_revision,
+        )
+
+        workflow_state.current_task_state = task_state
+        workflow_state.save(update_fields=['current_task_state'])
+
+        response = self.client.get(reverse('wagtail_review:api:base'), HTTP_X_REVIEW_TOKEN=Token(self.reviewer, self.page_revision, task_state).encode())
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/json')
@@ -368,63 +384,65 @@ class TestRespondView(APITestCase):
     def setUp(self):
         super().setUp()
 
-        self.review_request = ReviewRequest.objects.create(
+        self.workflow_state = WorkflowState.objects.create(
+            workflow=self.workflow,
+            page=self.page_revision.page,
+        )
+
+        self.task_state = ReviewTaskState.objects.create(
+            workflow_state=self.workflow_state,
+            task=self.workflow_task,
             page_revision=self.page_revision,
-            submitted_by=User.objects.get(username="homer"),
         )
 
     def test_post_approved_response(self):
         post_data = {
-            'status': 'approved',
+            'taskAction': 'approve',
             'comment': "This is the comment",
         }
-        response = self.client.post(reverse('wagtail_review:api:respond'), post_data, HTTP_X_REVIEW_TOKEN=Token(self.reviewer, self.page_revision, self.review_request).encode())
+        response = self.client.post(reverse('wagtail_review:api:respond'), post_data, HTTP_X_REVIEW_TOKEN=Token(self.reviewer, self.page_revision, self.task_state).encode())
 
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response['Content-Type'], 'application/json')
-        self.assertEqual(response.json(), {'comment': 'This is the comment', 'status': 'approved'})
+        self.assertEqual(response.status_code, 200)
 
-        review_reponse = ReviewResponse.objects.get()
-        self.assertEqual(review_reponse.request, self.review_request)
-        self.assertEqual(review_reponse.submitted_by, self.reviewer)
-        self.assertEqual(review_reponse.status, 'approved')
-        self.assertEqual(review_reponse.comment, "This is the comment")
+        self.task_state.refresh_from_db()
+        self.assertEqual(self.task_state.decided_by, self.reviewer)
+        self.assertTrue(self.task_state.decided_at)
+        self.assertEqual(self.task_state.status, 'approved')
+        self.assertEqual(self.task_state.comment, "This is the comment")
 
     def test_post_needs_changes_response(self):
         post_data = {
-            'status': 'needs-changes',
+            'taskAction': 'reject',
             'comment': "This is the comment",
         }
-        response = self.client.post(reverse('wagtail_review:api:respond'), post_data, HTTP_X_REVIEW_TOKEN=Token(self.reviewer, self.page_revision, self.review_request).encode())
+        response = self.client.post(reverse('wagtail_review:api:respond'), post_data, HTTP_X_REVIEW_TOKEN=Token(self.reviewer, self.page_revision, self.task_state).encode())
 
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response['Content-Type'], 'application/json')
-        self.assertEqual(response.json(), {'comment': 'This is the comment', 'status': 'needs-changes'})
+        self.assertEqual(response.status_code, 200)
 
-        review_reponse = ReviewResponse.objects.get()
-        self.assertEqual(review_reponse.request, self.review_request)
-        self.assertEqual(review_reponse.submitted_by, self.reviewer)
-        self.assertEqual(review_reponse.status, 'needs-changes')
-        self.assertEqual(review_reponse.comment, "This is the comment")
+        self.task_state.refresh_from_db()
+        self.assertEqual(self.task_state.decided_by, self.reviewer)
+        self.assertTrue(self.task_state.decided_at)
+        self.assertEqual(self.task_state.status, 'rejected')
+        self.assertEqual(self.task_state.comment, "This is the comment")
 
-    def test_post_invalid_status(self):
+    def test_post_invalid_action(self):
         post_data = {
-            'status': 'foo',
+            'taskAction': 'foo',
             'comment': "This is the comment",
         }
-        response = self.client.post(reverse('wagtail_review:api:respond'), post_data, HTTP_X_REVIEW_TOKEN=Token(self.reviewer, self.page_revision, self.review_request).encode())
+        response = self.client.post(reverse('wagtail_review:api:respond'), post_data, HTTP_X_REVIEW_TOKEN=Token(self.reviewer, self.page_revision, self.task_state).encode())
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 403)
         self.assertEqual(response['Content-Type'], 'application/json')
-        self.assertEqual(response.json(), {'status': ['"foo" is not a valid choice.']})
+        self.assertEqual(response.json(), {'detail': 'You do not have permission to perform this action.'})
 
     @unittest.expectedFailure  # No validation yet
     def test_post_long_comment(self):
         post_data = {
-            'status': 'approved',
+            'taskAction': 'approve',
             'comment': "A" * 201,
         }
-        response = self.client.post(reverse('wagtail_review:api:respond'), post_data, HTTP_X_REVIEW_TOKEN=Token(self.reviewer, self.page_revision, self.review_request).encode())
+        response = self.client.post(reverse('wagtail_review:api:respond'), post_data, HTTP_X_REVIEW_TOKEN=Token(self.reviewer, self.page_revision, self.task_state).encode())
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response['Content-Type'], 'application/json')
