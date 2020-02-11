@@ -1,7 +1,6 @@
 export interface UserApi {
     id: number | string;
-    full_name: string;
-    username: string;
+    name: string;
 }
 
 export interface ExternalReviewerApi {

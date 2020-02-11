@@ -5,14 +5,23 @@ from .. import models
 from ..api.serializers import CommentSerializer
 
 
+class UsernameField(serializers.ReadOnlyField):
+    def to_representation(self, user):
+        if hasattr(user, 'get_full_name'):
+            full_name = user.get_full_name()
+            if full_name:
+                return full_name
+
+        return user.get_username()
+
+
 class UserSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='pk')
-    full_name = serializers.ReadOnlyField(source='get_full_name')
-    username = serializers.ReadOnlyField(source='get_username')
+    name = UsernameField(source="*")
 
     class Meta:
         model = get_user_model()
-        fields = ['id', 'full_name', 'username']
+        fields = ['id', 'name']
 
 
 class ExternalReviewerSerializer(serializers.ModelSerializer):
