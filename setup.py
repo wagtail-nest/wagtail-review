@@ -14,6 +14,9 @@ setup(
     install_requires=[
         'pyjwt>1.7,<2.0',
     ],
+    extras_require={
+        "testing": ["factory-boy==2.12.0",],
+    },
     license='BSD',
     long_description="An extension for Wagtail allowing pages to be submitted for review (including to non-Wagtail users) prior to publication",
     classifiers=[
