@@ -1,8 +1,6 @@
 from django.core.validators import validate_email
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import generics
 from rest_framework.authentication import SessionAuthentication
@@ -15,18 +13,8 @@ from ..utils import normalize_email
 from . import serializers
 
 
-class FooAuth(SessionAuthentication):
-    # TODO: Make it work with CSRF
-    def enforce_csrf(self, request):
-        return
-
-
 class AdminAPIViewMixin:
-    authentication_classes = [FooAuth]
-
-    @method_decorator(csrf_exempt)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
+    authentication_classes = [SessionAuthentication]
 
 
 class PageShares(AdminAPIViewMixin, generics.ListCreateAPIView):
