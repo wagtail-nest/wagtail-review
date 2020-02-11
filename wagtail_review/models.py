@@ -345,21 +345,21 @@ class ReviewResponse(models.Model):
 
 class ReviewTaskState(TaskState):
     comment = models.TextField(blank=True)
-    decided_by = models.ForeignKey(Reviewer, on_delete=models.CASCADE, related_name='+', null=True)
-    decided_at = models.DateTimeField(null=True)
+    reviewed_by = models.ForeignKey(Reviewer, on_delete=models.CASCADE, related_name='+', null=True)
+    reviewed_at = models.DateTimeField(null=True)
 
     @transaction.atomic
     def approve(self, user=None, reviewer=None, comment='', **kwargs):
         self.comment = comment
-        self.decided_by = reviewer
-        self.decided_at = timezone.now()
+        self.reviewed_by = reviewer
+        self.reviewed_at = timezone.now()
         super().approve(**kwargs)
 
     @transaction.atomic
     def reject(self, user=None, reviewer=None, comment='', **kwargs):
         self.comment = comment
-        self.decided_by = reviewer
-        self.decided_at = timezone.now()
+        self.reviewed_by = reviewer
+        self.reviewed_at = timezone.now()
         super().reject(**kwargs)
 
 
