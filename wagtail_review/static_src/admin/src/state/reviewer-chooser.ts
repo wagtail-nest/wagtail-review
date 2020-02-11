@@ -7,21 +7,19 @@ export class User {
     type: 'user';
 
     id: number | string;
-    full_name: string;
-    username: string;
+    name: string;
 
-    constructor(id: number | string, full_name: string, username: string) {
+    constructor(id: number | string, name: string) {
         this.id = id;
-        this.full_name = full_name;
-        this.username = username;
+        this.name = name;
     }
 
     static fromApi(data: UserApi): User {
-        return new User(data.id, data.full_name, data.username);
+        return new User(data.id, data.name);
     }
 
     display(): string {
-        return this.full_name;
+        return this.name;
     }
 }
 

@@ -160,7 +160,7 @@ export default class ReviewerChooser extends React.Component<
                         } else {
                             return (
                                 <div className={classes.join(' ')}>
-                                    {result.username}
+                                    {result.name}
                                 </div>
                             );
                         }
