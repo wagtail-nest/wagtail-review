@@ -149,10 +149,26 @@ class ReviewerPagePermissions:
         if self.reviewer.external_id:
             return Share.objects.filter(external_user_id=self.reviewer.external_id, page=self.page).first()
 
+    def can_review(self):
+        """
+        Returns True if the workflow is in a ReviewTask and the reviewer is one of the reviewers.
+        """
+        if isinstance(self.page.current_workflow_task, ReviewTaskState):
+            reviewers = self.page.current_workflow_task.reviewers
+            if reviewers.filter(pk=self.reviewer.pk).exists():
+                return True
+
+        return False
+
     def can_view(self):
         """
         Returns True if the reviewer can view the page
         """
+        # If the page is in a workflow and this user is a reviewer then they can view
+        if self.can_review():
+            return True
+
+        # Otherwise, check if this page is shared with the user
         if self.reviewer.external_id:
             if self.share is None:
                 # Not shared with this reviewer before
@@ -162,11 +178,7 @@ class ReviewerPagePermissions:
                 # Share has expired
                 return False
 
-        try:
-            reviewers = self.page.current_workflow_task.reviewers
-            return reviewers.filter(pk=self.reviewer.pk).exists()
-        except AttributeError:
-            return False
+        return True
 
     def can_comment(self):
         """
@@ -176,6 +188,10 @@ class ReviewerPagePermissions:
             return False
 
         if self.reviewer.external_id and not self.share.can_comment:
+            # External users can leave comments without a share if they are a reviewer
+            if self.can_review():
+                return True
+
             # Reviewer can view but not comment
             return False
 
@@ -185,9 +201,13 @@ class ReviewerPagePermissions:
         """
         Returns True if the reviewer can approve or reject the stage
         """
+        if not self.can_review():
+            return False
+
         actions = {action[0] for action in self.page.current_workflow_task.get_actions(page, user=None, reviewer=self.reviewer)}
         if 'approve' in actions or 'reject' in actions:
             return True
+
         return False
 
 
