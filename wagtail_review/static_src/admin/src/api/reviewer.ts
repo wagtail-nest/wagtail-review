@@ -37,6 +37,12 @@ export type NewReviewerResponse =
     | NewReviewerValidationError;
 
 export default class ReviewerAPIClient {
+    csrfToken: string;
+
+    constructor(csrfToken: string) {
+        this.csrfToken = csrfToken;
+    }
+
     async getUsers({ search }: { search?: string }): Promise<UserApi[]> {
         let params = [];
 
@@ -61,7 +67,8 @@ export default class ReviewerAPIClient {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.csrfToken
             },
             body
         });

@@ -50,9 +50,11 @@ export interface CommentApi {
 
 export default class PageAPIClient {
     pageId: number;
+    csrfToken: string;
 
-    constructor(pageId: number) {
+    constructor(pageId: number, csrfToken: string) {
         this.pageId = pageId;
+        this.csrfToken = csrfToken;
     }
 
     async getShares(): Promise<ShareApi[]> {
@@ -73,7 +75,8 @@ export default class PageAPIClient {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrfToken
                 },
                 body: JSON.stringify({
                     email

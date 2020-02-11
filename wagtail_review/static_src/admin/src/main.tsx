@@ -21,9 +21,20 @@ import { putReviewer } from './actions/reviewer-chooser';
 declare let window: any;
 
 function initPageEditor(pageId: number) {
+    // Find the CSRF token on the form
+    let csrfToken = ''
+    const csrfTokenInputElement = document.body.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (csrfTokenInputElement instanceof HTMLInputElement) {
+        csrfToken = csrfTokenInputElement.value;
+    } else {
+        console.error('Cannot initialise reviewer chooser widget: unable to find CSRF Token input');
+        return
+    }
+
+    // Set up redux stores and API
     const shareStore = createStore(shareReducer);
     const commentsStore = createStore(commentsReducer);
-    const api = new PageAPIClient(pageId);
+    const api = new PageAPIClient(pageId, csrfToken);
 
     initTabs([
         {
@@ -121,8 +132,20 @@ function initPageEditor(pageId: number) {
 }
 
 function initReviewerChooserWidget(container: HTMLElement) {
+    // Find the CSRF token on the form
+    let csrfToken = ''
+    const formElement = container.closest('form');
+    const csrfTokenInputElement = formElement.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (csrfTokenInputElement instanceof HTMLInputElement) {
+        csrfToken = csrfTokenInputElement.value;
+    } else {
+        console.error('Cannot initialise reviewer chooser widget: unable to find CSRF Token input');
+        return
+    }
+
+    // Set up redux store and API
     const reviewerChooserStore = createStore(reviewerChooserReducer);
-    const api = new ReviewerAPIClient();
+    const api = new ReviewerAPIClient(csrfToken);
 
     // Add initial reviewers
     const initialReviewers: ReviewerApi[] = JSON.parse(
