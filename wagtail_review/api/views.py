@@ -56,7 +56,7 @@ class Home(ReviewTokenMixin, views.APIView):
         return Response({
             'you': serializers.ReviewerSerializer(self.reviewer).data,
             'can_comment': self.reviewer.page_perms(self.page_revision.page).can_comment(),
-            'can_review': self.task_state is not None,
+            'can_review': self.reviewer.page_perms(self.page_revision.page).can_respond(),
         })
 
 
@@ -151,14 +151,24 @@ class CommentReply(ReviewTokenMixin, generics.RetrieveUpdateDestroyAPIView):
 
 class Respond(ReviewTokenMixin, views.APIView):
     def post(self, *args, **kwargs):
-        if self.task_state is None or self.task_state.status != self.task_state.STATUS_IN_PROGRESS:
+        if not self.perms.can_respond():
             raise PermissionDenied()
+
+        # Note: self.perms.can_respond() can only return True if this is non-None so no need to check
+        task_state = self.page_revision.page.current_workflow_task_state.specific
+
+        # Make sure the task state in the token matches the current task state.
+        # This is to prevent accidental responding to a different task/workflow
+        # than what the they received corresponded to
+        if self.task_state != task_state:
+            raise PermissionDenied("The provided token isn't for the current task.")
+
         action = self.request.data['taskAction']
-        task = self.task_state.task.specific
-        page = self.task_state.workflow_state.page
+        task = task_state.task.specific
+        page = task_state.workflow_state.page
         comment = self.request.data.get('comment', '')
         if action in {action[0] for action in task.get_actions(page, self.request.user, reviewer=self.reviewer)}:
-            task.on_action(self.task_state, self.request.user, action, reviewer=self.reviewer, comment=comment)
+            task.on_action(task_state, self.request.user, action, reviewer=self.reviewer, comment=comment)
             return Response()
         else:
             raise PermissionDenied()

@@ -153,7 +153,7 @@ class ReviewerPagePermissions:
         """
         Returns True if the workflow is in a ReviewTask and the reviewer is one of the reviewers.
         """
-        if isinstance(self.page.current_workflow_task, ReviewTaskState):
+        if isinstance(self.page.current_workflow_task, ReviewTask):
             reviewers = self.page.current_workflow_task.reviewers
             if reviewers.filter(pk=self.reviewer.pk).exists():
                 return True
@@ -204,7 +204,7 @@ class ReviewerPagePermissions:
         if not self.can_review():
             return False
 
-        actions = {action[0] for action in self.page.current_workflow_task.get_actions(page, user=None, reviewer=self.reviewer)}
+        actions = {action[0] for action in self.page.current_workflow_task.get_actions(self.page, user=None, reviewer=self.reviewer)}
         if 'approve' in actions or 'reject' in actions:
             return True
 
@@ -263,7 +263,7 @@ class ReviewRequest(models.Model):
     objects = ReviewRequestQuerySet.as_manager()
 
     def get_review_url(self, reviewer):
-        review_token = Token(reviewer, self.page_revision_id, self)
+        review_token = Token(reviewer, self.page_revision_id)
         return get_review_url(review_token)
 
     def send_request_emails(self):

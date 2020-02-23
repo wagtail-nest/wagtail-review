@@ -12,7 +12,6 @@ TASK_STATE_ID_KEY = 'tsid'
 class Token:
     def __init__(self, reviewer_id, page_revision_id, task_state_id=None):
         from .models import Reviewer
-        from .models import ReviewRequest
 
         if isinstance(reviewer_id, Reviewer):
             self.__dict__['reviewer'] = reviewer_id
