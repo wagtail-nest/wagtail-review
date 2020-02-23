@@ -395,6 +395,9 @@ class TestRespondView(APITestCase):
             page_revision=self.page_revision,
         )
 
+        self.workflow_state.current_task_state = self.task_state
+        self.workflow_state.save(update_fields=['current_task_state'])
+
     def test_post_approved_response(self):
         post_data = {
             'taskAction': 'approve',
@@ -435,6 +438,35 @@ class TestRespondView(APITestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response['Content-Type'], 'application/json')
         self.assertEqual(response.json(), {'detail': 'You do not have permission to perform this action.'})
+
+    def test_post_review_token_for_different_task(self):
+        # This may happen if someone uses an old token (clicked from email history) and the page happens
+        # to be in another review task
+        past_workflow_state = WorkflowState.objects.create(
+            workflow=self.workflow,
+            page=self.page_revision.page,
+            status=WorkflowState.STATUS_APPROVED,
+        )
+
+        past_task_state = ReviewTaskState.objects.create(
+            workflow_state=past_workflow_state,
+            task=self.workflow_task,
+            page_revision=self.page_revision,
+            status=ReviewTaskState.STATUS_APPROVED,
+        )
+
+        past_workflow_state.current_task_state = past_task_state
+        past_workflow_state.save(update_fields=['current_task_state'])
+
+        post_data = {
+            'taskAction': 'approve',
+            'comment': "This is the comment",
+        }
+        response = self.client.post(reverse('wagtail_review:api:respond'), post_data, HTTP_X_REVIEW_TOKEN=Token(self.reviewer, self.page_revision, past_task_state).encode())
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        self.assertEqual(response.json(), {'detail': "The provided token isn't for the current task."})
 
     @unittest.expectedFailure  # No validation yet
     def test_post_long_comment(self):

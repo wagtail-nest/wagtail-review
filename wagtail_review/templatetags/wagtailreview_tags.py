@@ -10,11 +10,10 @@ def wagtailreview(context):
 
     if token is not None:
         perms = getattr(request, 'wagtailreview_perms')
-        task_state = getattr(request, 'wagtailreview_task_state', None)
 
         return {
             'allow_comments': perms.can_comment(),
-            'allow_responses': task_state and task_state.status == task_state.STATUS_IN_PROGRESS,
+            'allow_responses': perms.can_respond(),
             'token': token,
         }
     else:
