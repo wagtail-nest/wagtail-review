@@ -17,26 +17,22 @@ function renderComment(comment: Comment): React.ReactFragment {
 
     return (
         <li key={comment.id} className="comment">
-            <div className="comment__header">
-                <div className="comment__header-info">
-                    <h2>{comment.author.name}</h2>
-                    <p className="comment__date">
-                        {dateFormat(comment.date, 'h:MM mmmm d')}
-                    </p>
-                </div>
-                <div className="comment__header-resolved">
-                    <label>
-                        Resolved
-                        <input
-                            name="resolved"
-                            type="checkbox"
-                            checked={comment.isResolved}
-                            disabled
-                        />
-                    </label>
-                </div>
-            </div>
             <p className="comment__text">{comment.text}</p>
+
+            <p className="comment__info">
+                {comment.author.name} - {dateFormat(comment.date, 'h:MM mmmm d')}
+            </p>
+            <div className="comment__resolved">
+                <label>
+                    Resolved
+                    <input
+                        name="resolved"
+                        type="checkbox"
+                        checked={comment.isResolved}
+                        disabled
+                    />
+                </label>
+            </div>
             <a
                 href={comment.frontendUrl}
                 onClick={onClickLink}

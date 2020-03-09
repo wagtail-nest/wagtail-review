@@ -3,9 +3,9 @@
     top: 0;
     right: 0;
     z-index: 99;
-    background-color: #fff;
+    background-color: #333;
+    color: white;
     box-sizing: border-box;
-    border: 1px solid #ccc;
     width: 300px;
 
     &__show-hide-resolved {
@@ -23,8 +23,7 @@
     }
 
     ul {
-        padding: 10px;
-        overflow-y: scroll;
+        overflow-y: auto;
         max-height: 600px;
     }
 }
@@ -38,31 +37,29 @@
 
 .comment {
     display: block;
-    background: white;
     transition: top 0.5s ease 0s, right 0.5s ease 0s, height 0.5s ease 0s;
     font-size: 0.9em;
+    box-sizing: border-box;
+    padding-left: 13px !important;
+    padding-right: 13px !important;
+    padding-bottom: 10px !important;
 
     &:not(:last-child) {
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 10px;
-        margin-bottom: 10px;
+        border-bottom: 1px solid #5b5b5b;
     }
 
-    &__header-info,
-    &__header-resolved {
-        display: inline-block;
+    &__text {
+        font-weight: bold;
+        margin-top: 26px;
+        margin-bottom: 0px;
+        font-size: 1.1em;
     }
 
-    &__header-info {
-        h2 {
-            margin-top: 0;
-            margin-bottom: 0;
-            font-weight: bold;
-            color: #555;
-        }
+    &__info {
+        color: #d5d5d5;
     }
 
-    &__header-resolved {
+    &__resolved {
         float: right;
         white-space: nowrap;
 
@@ -70,25 +67,13 @@
             padding-top: 0;
             width: initial;
             float: none;
+            color: white;
+            font-weight: normal;
         }
 
         input {
             margin-left: 10px;
         }
-    }
-
-    &__date {
-        font-size: 0.8em;
-        color: #555;
-        margin: 0;
-    }
-
-    &__text {
-        clear: both;
-        margin: 0;
-        font-size: 1.2em;
-        padding-top: 5px;
-        padding-left: 5px;
     }
 }
 
@@ -98,5 +83,11 @@ a.comment__view-on-frontend {
     font-size: 0.9em;
     border-top: none;
     line-height: initial;
-    margin-top: 0.5em;
+    margin-top: 0;
+    background-color: #007d7e;
+    border-radius: 3px;
+    padding-top: 5px;
+    padding-right: 5px;
+    padding-left: 22px;
+    padding-right: 22px;
 }
