@@ -6,7 +6,9 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django.utils.html import escape
 from django.utils.module_loading import import_string
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from wagtail.admin.mail import send_mail
@@ -345,22 +347,50 @@ class ReviewResponse(models.Model):
 
 class ReviewTaskState(TaskState):
     comment = models.TextField(blank=True)
-    reviewed_by = models.ForeignKey(Reviewer, on_delete=models.CASCADE, related_name='+', null=True)
-    reviewed_at = models.DateTimeField(null=True)
+    reviewer = models.ForeignKey(Reviewer, on_delete=models.CASCADE, related_name='+', null=True)
+
+    def _finalise(self, user=None, reviewer=None, comment=''):
+        self.comment = comment
+        self.reviewer = reviewer
+        if reviewer and reviewer.internal_id:
+            self.finished_by_id = reviewer.internal_id
+        elif user and user.is_authenticated:
+            self.finished_by = user
+        self.finished_at = timezone.now()
 
     @transaction.atomic
     def approve(self, user=None, reviewer=None, comment='', **kwargs):
-        self.comment = comment
-        self.reviewed_by = reviewer
-        self.reviewed_at = timezone.now()
+        self._finalise(
+            user=user,
+            reviewer=reviewer,
+            comment=comment,
+        )
         super().approve(**kwargs)
 
     @transaction.atomic
     def reject(self, user=None, reviewer=None, comment='', **kwargs):
-        self.comment = comment
-        self.reviewed_by = reviewer
-        self.reviewed_at = timezone.now()
+        self._finalise(
+            user=user,
+            reviewer=reviewer,
+            comment=comment,
+        )
         super().reject(**kwargs)
+
+    def get_comment(self):
+        if self.status in [self.STATUS_APPROVED, self.STATUS_REJECTED]:
+            comment = escape(self.comment)
+            external_user = self.reviewer and self.reviewer.external
+
+            if external_user:
+                email_address = escape(external_user.email)
+                return mark_safe(f"""
+                    Reviewed by external user: <b>{email_address}</b><br/>
+                    <blockquote>{comment}</blockquote>
+                """)
+            else:
+                return mark_safe(f"<blockquote>{comment}</blockquote>")
+
+        return ""
 
 
 class ReviewTask(Task):
