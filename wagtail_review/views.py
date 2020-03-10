@@ -27,8 +27,11 @@ def review(request, token):
     else:
         task_state = None
 
-    dummy_request = page.dummy_request(request)
-    dummy_request.wagtailreview_token = token
-    dummy_request.wagtailreview_perms = perms
-    dummy_request.wagtailreview_task_state = task_state
-    return page.serve_preview(dummy_request, page.default_preview_mode)
+    return page.make_preview_request(
+        original_request=request,
+        extra_request_attrs={
+            'wagtailreview_token': token,
+            'wagtailreview_perms': perms,
+            'wagtailreview_task_state': task_state,
+        }
+    )

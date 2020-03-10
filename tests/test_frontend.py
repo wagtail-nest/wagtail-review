@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from wagtail.core.models import Page
+from wagtail.core.models import Page, Site
 
 from wagtail_review.models import Share
 from wagtail_review.token import Token
@@ -27,6 +27,10 @@ class TestReviewView(TestCase):
             can_comment=True,
             shared_by=User.objects.get(username="homer"),
         )
+
+        # Need to update site record so the hostname matches what Django will sent to the view
+        # This prevents a 400 (Bad Request) error when the preview is generated
+        Site.objects.update(hostname="testserver")
 
     def test_get_review(self):
         response = self.client.get(reverse('wagtail_review:review', args=[self.token.encode()]))
