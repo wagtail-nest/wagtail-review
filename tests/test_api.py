@@ -408,8 +408,8 @@ class TestRespondView(APITestCase):
         self.assertEqual(response.status_code, 200)
 
         self.task_state.refresh_from_db()
-        self.assertEqual(self.task_state.reviewed_by, self.reviewer)
-        self.assertTrue(self.task_state.reviewed_at)
+        self.assertEqual(self.task_state.reviewer, self.reviewer)
+        self.assertTrue(self.task_state.finished_at)
         self.assertEqual(self.task_state.status, 'approved')
         self.assertEqual(self.task_state.comment, "This is the comment")
 
@@ -423,8 +423,8 @@ class TestRespondView(APITestCase):
         self.assertEqual(response.status_code, 200)
 
         self.task_state.refresh_from_db()
-        self.assertEqual(self.task_state.reviewed_by, self.reviewer)
-        self.assertTrue(self.task_state.reviewed_at)
+        self.assertEqual(self.task_state.reviewer, self.reviewer)
+        self.assertTrue(self.task_state.finished_at)
         self.assertEqual(self.task_state.status, 'rejected')
         self.assertEqual(self.task_state.comment, "This is the comment")
 
