@@ -6,9 +6,8 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
-from django.utils.html import escape
+from django.utils.html import format_html
 from django.utils.module_loading import import_string
-from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from wagtail.admin.mail import send_mail
@@ -378,17 +377,19 @@ class ReviewTaskState(TaskState):
 
     def get_comment(self):
         if self.status in [self.STATUS_APPROVED, self.STATUS_REJECTED]:
-            comment = escape(self.comment)
             external_user = self.reviewer and self.reviewer.external
 
             if external_user:
-                email_address = escape(external_user.email)
-                return mark_safe(f"""
-                    Reviewed by external user: <b>{email_address}</b><br/>
-                    <blockquote>{comment}</blockquote>
-                """)
+                return format_html(
+                    """
+                    Reviewed by external user: <b>{}</b><br/>
+                    <blockquote>{}</blockquote>
+                    """,
+                    external_user.email,
+                    self.comment
+                )
             else:
-                return mark_safe(f"<blockquote>{comment}</blockquote>")
+                return format_html("<blockquote>{}</blockquote>", self.comment)
 
         return ""
 
