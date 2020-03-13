@@ -11,8 +11,8 @@ from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
 from wagtail.admin.mail import send_mail
-from wagtail.admin.edit_handlers import FieldPanel, Task
-from wagtail.core.models import Page, UserPagePermissionsProxy, TaskState
+from wagtail.admin.edit_handlers import FieldPanel
+from wagtail.core.models import Page, UserPagePermissionsProxy, Task, TaskState
 from django.shortcuts import redirect
 
 from .edit_handlers import ReviewerChooserPanel
