@@ -4,7 +4,6 @@ from django.contrib import messages as django_messages
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
-from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from wagtail import VERSION as WAGTAIL_VERSION
@@ -128,7 +127,10 @@ def editor_js():
 # editor where we also have the page ID
 class GuacamoleMenuItem(ActionMenuItem):
     def render_html(self, request, context):
-        return mark_safe(f"<script>window.wagtailPageId = {context['page'].id};</script>")
+        if 'page' in context:
+            return format_html("<script>window.wagtailPageId = {};</script>", context['page'].id)
+
+        return ''
 
 
 @hooks.register('register_page_action_menu_item')

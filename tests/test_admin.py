@@ -30,6 +30,17 @@ class TestCreateReview(TestCase):
         self.assertContains(response, "Submit for review")
         # check that JS is imported
         self.assertContains(response, "wagtail_review/js/submit.js")
+        # check that the page ID is inserted for the JS to pick up
+        self.assertContains(response, "window.wagtailPageId = %d" % self.homepage.pk)
+
+    def test_submit_for_review_action_on_create(self):
+        """Test that 'submit for review' appears in the page action menu on page creation"""
+        response = self.client.get('/admin/pages/add/tests/simplepage/%d/' % self.homepage.pk)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertContains(response, "Submit for review")
+        # check that JS is imported
+        self.assertContains(response, "wagtail_review/js/submit.js")
 
     def test_create_review(self):
         response = self.client.get('/admin/wagtail_review/create_review/')
