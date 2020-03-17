@@ -1,4 +1,6 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.db import models, transaction
 from django.db.models import Case, Q, Value, When
 from django.db.models.constraints import CheckConstraint, UniqueConstraint
@@ -152,12 +154,11 @@ class ReviewerPagePermissions:
 
     def can_review(self):
         """
-        Returns True if the workflow is in a ReviewTask and the reviewer is one of the reviewers.
+        Returns True if the workflow is in a ReviewTask or GroupReviewTask and the reviewer is one of the reviewers.
         """
-        if isinstance(self.page.current_workflow_task, ReviewTask):
-            reviewers = self.page.current_workflow_task.reviewers
-            if reviewers.filter(pk=self.reviewer.pk).exists():
-                return True
+        actions = {action[0] for action in self.page.current_workflow_task.get_actions(self.page, user=None, reviewer=self.reviewer)}
+        if 'review' in actions:
+            return True
 
         return False
 
@@ -442,6 +443,72 @@ class ReviewTask(Task):
             review_token = Token(Reviewer.objects.get_or_create(internal=user)[0], task_state.page_revision, task_state)
             return redirect(get_review_url(review_token))
 
+    def get_task_states_user_can_moderate(self, user, **kwargs):
+        if self.reviewers.filter(internal__pk=user.pk).exists() or user.is_superuser:
+            return TaskState.objects.filter(status=TaskState.STATUS_IN_PROGRESS, task=self.task_ptr)
+        else:
+            return TaskState.objects.none()
+
     class Meta:
         verbose_name = _('Review task')
         verbose_name_plural = _('Review tasks')
+
+
+class GroupReviewTask(Task):
+    groups = models.ManyToManyField(Group, verbose_name=_('groups'), help_text=_('Pages at this step in a workflow will be commented on or approved by these groups of users'))
+
+    panels = Task.panels + [FieldPanel('groups', heading=_("Choose review groups"))]
+
+    task_state_class = ReviewTaskState
+
+    def start(self, workflow_state, user=None):
+        if workflow_state.page.locked_by:
+            # If the person who locked the page isn't in one of the groups, unlock the page
+            if not workflow_state.page.locked_by.groups.filter(id__in=self.groups.all()).exists():
+                workflow_state.page.locked = False
+                workflow_state.page.locked_by = None
+                workflow_state.page.locked_at = None
+                workflow_state.page.save(update_fields=['locked', 'locked_by', 'locked_at'])
+
+        return super().start(workflow_state, user=user)
+
+    def user_can_access_editor(self, page, user):
+        return self.groups.filter(id__in=user.groups.all()).exists()
+
+    def user_can_lock(self, page, user):
+        return self.groups.filter(id__in=user.groups.all()).exists()
+
+    def user_can_unlock(self, page, user):
+        return False
+
+    @cached_property
+    def get_actions(self, page, user, reviewer=None, **kwargs):
+        if reviewer and (not user or not user.is_authenticated):
+            user = get_user_model().objects.get(pk=reviewer.internal.pk)
+        if self.groups.filter(id__in=user.groups.all()).exists() or user.is_superuser:
+            return [
+                ('review', _("Review")),
+                ('approve', _("Approve")),
+                ('reject', _("Reject")),
+            ]
+        else:
+            return []
+
+    def on_action(self, task_state, user, action_name, reviewer=None, comment='', **kwargs):
+        if action_name == 'approve':
+            task_state.approve(user=user, reviewer=reviewer, comment=comment)
+        elif action_name == 'reject':
+            task_state.reject(user=user, reviewer=reviewer, comment=comment)
+        elif action_name == 'review':
+            review_token = Token(Reviewer.objects.get_or_create(internal=user)[0], task_state.page_revision, task_state)
+            return redirect(get_review_url(review_token))
+
+    def get_task_states_user_can_moderate(self, user, **kwargs):
+        if self.groups.filter(id__in=user.groups.all()).exists() or user.is_superuser:
+            return TaskState.objects.filter(status=TaskState.STATUS_IN_PROGRESS, task=self.task_ptr)
+        else:
+            return TaskState.objects.none()
+
+    class Meta:
+        verbose_name = _('Group review task')
+        verbose_name_plural = _('Group review tasks')
