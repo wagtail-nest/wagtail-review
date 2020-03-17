@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.conf.urls import include, url
-from django.utils.html import format_html_join
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html, format_html_join
 
 from wagtail.admin.action_menu import ActionMenuItem
 from wagtail.core import hooks
@@ -38,7 +37,10 @@ def editor_js():
 # editor where we also have the page ID
 class GuacamoleMenuItem(ActionMenuItem):
     def render_html(self, request, context):
-        return mark_safe(f"<script>window.wagtailPageId = {context['page'].id};</script>")
+        if 'page' in context:
+            return format_html("<script>window.wagtailPageId = {};</script>", context['page'].id)
+
+        return ''
 
 
 @hooks.register('register_page_action_menu_item')
