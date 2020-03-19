@@ -156,9 +156,12 @@ class ReviewerPagePermissions:
         """
         Returns True if the workflow is in a ReviewTask or GroupReviewTask and the reviewer is one of the reviewers.
         """
-        actions = {action[0] for action in self.page.current_workflow_task.get_actions(self.page, user=None, reviewer=self.reviewer)}
-        if 'review' in actions:
-            return True
+        try:
+            actions = {action[0] for action in self.page.current_workflow_task.get_actions(self.page, user=None, reviewer=self.reviewer)}
+            if 'review' in actions:
+                return True
+        except AttributeError:
+            pass
 
         return False
 
@@ -481,11 +484,10 @@ class GroupReviewTask(Task):
     def user_can_unlock(self, page, user):
         return False
 
-    @cached_property
     def get_actions(self, page, user, reviewer=None, **kwargs):
         if reviewer and (not user or not user.is_authenticated):
             user = get_user_model().objects.get(pk=reviewer.internal.pk)
-        if self.groups.filter(id__in=user.groups.all()).exists() or user.is_superuser:
+        if self.groups.all().filter(id__in=user.groups.all()).exists() or user.is_superuser:
             return [
                 ('review', _("Review")),
                 ('approve', _("Approve")),
