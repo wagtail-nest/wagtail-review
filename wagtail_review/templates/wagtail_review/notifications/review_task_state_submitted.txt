@@ -1,0 +1,22 @@
+{% extends 'wagtailadmin/notifications/base.html' %}
+
+{% load i18n %}
+
+{% block greeting %}
+{% if reviewer %}{% blocktrans with name=reviewer.get_name %}Hello {{ name }},{% endblocktrans %}{% endif %}
+{% endblock %}
+
+{% block content %}
+{% blocktrans with task=task.name title=page.get_admin_display_title %}The page "{{ title }}" has been submitted for review in moderation stage "{{ task }}".{% endblocktrans %}
+
+
+{% trans "You can review the page here:" %} {{ review_url }}
+{% trans "You can edit the page here:" %} {{ settings.BASE_URL }}{% url 'wagtailadmin_pages:edit' page.id %}
+
+{% endblock %}
+
+{% block preferences %}
+{% if user %}
+    {{ block.super }}
+{% endif %}
+{% endblock %}
