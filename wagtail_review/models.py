@@ -461,6 +461,7 @@ class GroupReviewTask(Task):
     groups = models.ManyToManyField(Group, verbose_name=_('groups'), help_text=_('Pages at this step in a workflow will be commented on or approved by these groups of users'))
 
     panels = Task.panels + [FieldPanel('groups', heading=_("Choose review groups"))]
+    exclude_on_edit = {'groups'}
 
     task_state_class = ReviewTaskState
 
