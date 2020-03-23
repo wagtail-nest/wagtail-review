@@ -398,17 +398,14 @@ class ReviewTaskState(TaskState):
         return ""
 
 
-class ReviewTask(Task):
-    reviewers = models.ManyToManyField(Reviewer)
-
-    panels = Task.panels + [ReviewerChooserPanel('reviewers')]
-
-    task_state_class = ReviewTaskState
+class ReviewMixin:
+    def is_reviewer_for_task(self, user, reviewer=None):
+        return NotImplementedError
 
     def start(self, workflow_state, user=None):
         if workflow_state.page.locked_by:
             # If the person who locked the page isn't a reviewer, unlock the page
-            if not self.reviewers.filter(internal__pk=workflow_state.page.locked_by.pk).exists():
+            if not self.is_reviewer_for_task(user):
                 workflow_state.page.locked = False
                 workflow_state.page.locked_by = None
                 workflow_state.page.locked_at = None
@@ -417,18 +414,16 @@ class ReviewTask(Task):
         return super().start(workflow_state, user=user)
 
     def user_can_access_editor(self, page, user):
-        return self.reviewers.filter(internal__pk=user.pk).exists()
+        return self.is_reviewer_for_task(user)
 
     def user_can_lock(self, page, user):
-        return self.reviewers.filter(internal__pk=user.pk).exists()
+        return self.is_reviewer_for_task(user)
 
     def user_can_unlock(self, page, user):
         return False
 
     def get_actions(self, page, user, reviewer=None, **kwargs):
-        if not reviewer:
-            reviewer = Reviewer.objects.get(internal__pk=user.pk)
-        if self.reviewers.filter(pk=reviewer.pk).exists() or user.is_superuser:
+        if self.is_reviewer_for_task(user, reviewer=reviewer) or user.is_superuser:
             return [
                 ('review', _("Review")),
                 ('approve', _("Approve")),
@@ -447,17 +442,33 @@ class ReviewTask(Task):
             return redirect(get_review_url(review_token))
 
     def get_task_states_user_can_moderate(self, user, **kwargs):
-        if self.reviewers.filter(internal__pk=user.pk).exists() or user.is_superuser:
+        if self.is_reviewer_for_task(user) or user.is_superuser:
             return TaskState.objects.filter(status=TaskState.STATUS_IN_PROGRESS, task=self.task_ptr)
         else:
             return TaskState.objects.none()
+
+
+class ReviewTask(ReviewMixin, Task):
+    reviewers = models.ManyToManyField(Reviewer)
+
+    panels = Task.panels + [ReviewerChooserPanel('reviewers')]
+
+    task_state_class = ReviewTaskState
+
+    def is_reviewer_for_task(self, user, reviewer=None):
+        if not reviewer:
+            try:
+                reviewer = Reviewer.objects.get(internal__pk=user.pk)
+            except (Reviewer.DoesNotExist, AttributeError):
+                return False
+        return self.reviewers.filter(pk=reviewer.pk).exists()
 
     class Meta:
         verbose_name = _('Review task')
         verbose_name_plural = _('Review tasks')
 
 
-class GroupReviewTask(Task):
+class GroupReviewTask(ReviewMixin, Task):
     groups = models.ManyToManyField(Group, verbose_name=_('groups'), help_text=_('Pages at this step in a workflow will be commented on or approved by these groups of users'))
 
     panels = Task.panels + [FieldPanel('groups', heading=_("Choose review groups"))]
@@ -465,52 +476,10 @@ class GroupReviewTask(Task):
 
     task_state_class = ReviewTaskState
 
-    def start(self, workflow_state, user=None):
-        if workflow_state.page.locked_by:
-            # If the person who locked the page isn't in one of the groups, unlock the page
-            if not workflow_state.page.locked_by.groups.filter(id__in=self.groups.all()).exists():
-                workflow_state.page.locked = False
-                workflow_state.page.locked_by = None
-                workflow_state.page.locked_at = None
-                workflow_state.page.save(update_fields=['locked', 'locked_by', 'locked_at'])
-
-        return super().start(workflow_state, user=user)
-
-    def user_can_access_editor(self, page, user):
-        return self.groups.filter(id__in=user.groups.all()).exists()
-
-    def user_can_lock(self, page, user):
-        return self.groups.filter(id__in=user.groups.all()).exists()
-
-    def user_can_unlock(self, page, user):
-        return False
-
-    def get_actions(self, page, user, reviewer=None, **kwargs):
+    def is_reviewer_for_task(self, user, reviewer=None):
         if reviewer and (not user or not user.is_authenticated):
             user = get_user_model().objects.get(pk=reviewer.internal.pk)
-        if self.groups.all().filter(id__in=user.groups.all()).exists() or user.is_superuser:
-            return [
-                ('review', _("Review")),
-                ('approve', _("Approve")),
-                ('reject', _("Reject")),
-            ]
-        else:
-            return []
-
-    def on_action(self, task_state, user, action_name, reviewer=None, comment='', **kwargs):
-        if action_name == 'approve':
-            task_state.approve(user=user, reviewer=reviewer, comment=comment)
-        elif action_name == 'reject':
-            task_state.reject(user=user, reviewer=reviewer, comment=comment)
-        elif action_name == 'review':
-            review_token = Token(Reviewer.objects.get_or_create(internal=user)[0], task_state.page_revision, task_state)
-            return redirect(get_review_url(review_token))
-
-    def get_task_states_user_can_moderate(self, user, **kwargs):
-        if self.groups.filter(id__in=user.groups.all()).exists() or user.is_superuser:
-            return TaskState.objects.filter(status=TaskState.STATUS_IN_PROGRESS, task=self.task_ptr)
-        else:
-            return TaskState.objects.none()
+        return self.groups.all().filter(id__in=user.groups.all()).exists()
 
     class Meta:
         verbose_name = _('Group review task')
