@@ -86,40 +86,43 @@ class ReviewTaskStateSubmissionEmailNotifier(EmailNotificationMixin, Notifier):
     def send_emails(self, template_set, context, recipients, **kwargs):
 
         connection = get_connection()
+        sent_count = 0
 
-        with OpenedConnection(connection) as open_connection:
+        try:
+            with OpenedConnection(connection) as open_connection:
 
-            # Send emails
-            sent_count = 0
-            for recipient in recipients:
-                try:
+                # Send emails
+                for recipient in recipients:
+                    try:
 
-                    # update context with this recipient
-                    context["user"] = recipient.internal
-                    context["reviewer"] = recipient
-                    context["review_url"] = get_review_url(Token(recipient, context["revision"]))
+                        # update context with this recipient
+                        context["user"] = recipient.internal
+                        context["reviewer"] = recipient
+                        context["review_url"] = get_review_url(Token(recipient, context["revision"]))
 
-                    # Translate text to the recipient language settings
-                    if recipient.internal:
-                        with override(recipient.internal.wagtail_userprofile.get_preferred_language()):
-                            # Get email subject and content
+                        # Translate text to the recipient language settings
+                        if recipient.internal:
+                            with override(recipient.internal.wagtail_userprofile.get_preferred_language()):
+                                # Get email subject and content
+                                email_subject = render_to_string(template_set['subject'], context).strip()
+                                email_content = render_to_string(template_set['text'], context).strip()
+                        else:
                             email_subject = render_to_string(template_set['subject'], context).strip()
                             email_content = render_to_string(template_set['text'], context).strip()
-                    else:
-                        email_subject = render_to_string(template_set['subject'], context).strip()
-                        email_content = render_to_string(template_set['text'], context).strip()
 
-                    kwargs = {}
-                    if getattr(settings, 'WAGTAILADMIN_NOTIFICATION_USE_HTML', False):
-                        kwargs['html_message'] = render_to_string(template_set['html'], context)
+                        kwargs = {}
+                        if getattr(settings, 'WAGTAILADMIN_NOTIFICATION_USE_HTML', False):
+                            kwargs['html_message'] = render_to_string(template_set['html'], context)
 
-                    # Send email
-                    send_mail(email_subject, email_content, [recipient.get_email()], connection=open_connection, **kwargs)
-                    sent_count += 1
-                except Exception:
-                    logger.exception(
-                        "Failed to send notification email '%s' to %s",
-                        email_subject, recipient.email
-                    )
+                        # Send email
+                        send_mail(email_subject, email_content, [recipient.get_email()], connection=open_connection, **kwargs)
+                        sent_count += 1
+                    except Exception:
+                        logger.exception(
+                            "Failed to send notification email '%s' to %s",
+                            email_subject, recipient.email
+                        )
+        except (TimeoutError, ConnectionError):
+            logger.exception("Mail connection error, notification sending skipped")
 
         return sent_count == len(recipients)
