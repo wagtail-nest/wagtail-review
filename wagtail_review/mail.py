@@ -17,13 +17,14 @@ class ReviewTaskStateSubmissionEmailNotifier(EmailNotificationMixin, Notifier):
     """A EmailNotifier to send updates for ReviewTask/GroupReviewTask submissions"""
 
     notification = 'submitted'
+    tasks = (ReviewTask, GroupReviewTask)
     template_directory = 'wagtail_review/notifications/'
 
     def __init__(self):
         super().__init__((TaskState, ReviewTaskState))
 
     def can_handle(self, instance, **kwargs):
-        if super().can_handle(instance, **kwargs) and isinstance(instance.task.specific, (ReviewTask, GroupReviewTask)):
+        if super().can_handle(instance, **kwargs) and isinstance(instance.task.specific, self.tasks):
             # Don't send notifications if a Task has been cancelled and then resumed - ie page was updated to a new revision
             return not TaskState.objects.filter(workflow_state=instance.workflow_state, task=instance.task, status=TaskState.STATUS_CANCELLED).exists()
         return False
