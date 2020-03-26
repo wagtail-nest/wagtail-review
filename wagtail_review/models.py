@@ -423,7 +423,7 @@ class ReviewTask(Task):
 
     def get_actions(self, page, user, reviewer=None, **kwargs):
         if not reviewer:
-            reviewer = Reviewer.objects.get_or_create(internal=user)[0]
+            reviewer, _ = Reviewer.objects.get_or_create(internal=user)
         if self.reviewers.filter(pk=reviewer.pk).exists() or user.is_superuser:
             return [
                 ('review', _("Review")),
