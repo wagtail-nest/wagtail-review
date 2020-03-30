@@ -37,9 +37,15 @@ export type NewReviewerResponse =
 
 export default class ReviewerAPIClient {
     csrfToken: string;
+    usersUrl: string;
+    reviewerUrl: string;
+    csrfHeaderName: string;
 
-    constructor(csrfToken: string) {
+    constructor(csrfToken: string, usersUrl: string, reviewerUrl: string, csrfHeaderName: string) {
         this.csrfToken = csrfToken;
+        this.usersUrl = usersUrl;
+        this.reviewerUrl = reviewerUrl;
+        this.csrfHeaderName = csrfHeaderName;
     }
 
     async getUsers({ search }: { search?: string }): Promise<UserApi[]> {
@@ -52,7 +58,7 @@ export default class ReviewerAPIClient {
         const paramsStr = params ? '?' + params.join('&') : '';
 
         let response = await fetch(
-            `/admin/wagtail_review/api/users/${paramsStr}`,
+            `${this.usersUrl}${paramsStr}`,
             {
                 credentials: 'same-origin'
             }
@@ -61,13 +67,13 @@ export default class ReviewerAPIClient {
         return response.json();
     }
 
-    async _newReviwer(body: string): Promise<NewReviewerResponse> {
-        let response = await fetch(`/admin/wagtail_review/api/reviewers/`, {
+    async _newReviewer(body: string): Promise<NewReviewerResponse> {
+        let response = await fetch(this.reviewerUrl, {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': this.csrfToken
+                [this.csrfHeaderName]: this.csrfToken
             },
             body
         });
@@ -92,7 +98,7 @@ export default class ReviewerAPIClient {
     async newInternalReviewer(
         user_id: number | string
     ): Promise<NewReviewerResponse> {
-        return this._newReviwer(
+        return this._newReviewer(
             JSON.stringify({
                 user_id
             })
@@ -100,7 +106,7 @@ export default class ReviewerAPIClient {
     }
 
     async newExternalReviewer(email: string): Promise<NewReviewerResponse> {
-        return this._newReviwer(
+        return this._newReviewer(
             JSON.stringify({
                 email
             })

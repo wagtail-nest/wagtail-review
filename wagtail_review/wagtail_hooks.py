@@ -1,11 +1,13 @@
 from django.conf import settings
 from django.conf.urls import include, url
+from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 
 from wagtail.admin.action_menu import ActionMenuItem
 from wagtail.core import hooks
 
 from .admin_api import urls as api_urls
+from .admin_api import views as api_views
 
 
 @hooks.register('register_admin_urls')
@@ -38,7 +40,10 @@ def editor_js():
 class GuacamoleMenuItem(ActionMenuItem):
     def render_html(self, request, context):
         if 'page' in context:
-            return format_html("<script>window.wagtailPageId = {};</script>", context['page'].id)
+            return format_html("<script>window.wagtailPageId = {}; window.sharesUrl = '{}'; window.commentsUrl = '{}';</script>",
+            context['page'].id,
+            reverse('wagtail_review_admin:api:page_shares', args=[context['page'].id]),
+            reverse('wagtail_review_admin:api:page_comments', args=[context['page'].id]))
 
         return ''
 
