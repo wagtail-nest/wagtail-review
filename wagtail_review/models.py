@@ -160,7 +160,7 @@ class ReviewerPagePermissions:
             actions = {action[0] for action in self.page.current_workflow_task.get_actions(self.page, user=None, reviewer=self.reviewer)}
             if 'review' in actions:
                 return True
-        except AttributeError:
+        except (AttributeError, TypeError):
             pass
 
         return False
