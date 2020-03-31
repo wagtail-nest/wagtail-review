@@ -457,10 +457,7 @@ class ReviewTask(ReviewMixin, Task):
 
     def is_reviewer_for_task(self, user, reviewer=None):
         if not reviewer:
-            try:
-                reviewer = Reviewer.objects.get(internal__pk=user.pk)
-            except (Reviewer.DoesNotExist, AttributeError):
-                return False
+            reviewer, created = Reviewer.objects.get_or_create(internal=user)
         return self.reviewers.filter(pk=reviewer.pk).exists()
 
     class Meta:
