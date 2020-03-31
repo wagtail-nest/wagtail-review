@@ -5,7 +5,7 @@ from django.core.mail.message import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.translation import override
 
-from wagtail.admin.mail import EmailNotifier, OpenedConnection, logger, send_mail
+from wagtail.admin.mail import EmailNotificationMixin, Notifier, OpenedConnection, logger, send_mail
 from wagtail.core.models import TaskState
 from wagtail.users.models import UserProfile
 
@@ -13,7 +13,7 @@ from .models import GroupReviewTask, Reviewer, ReviewTask, ReviewTaskState, get_
 from .token import Token
 
 
-class ReviewTaskStateSubmissionEmailNotifier(EmailNotifier):
+class ReviewTaskStateSubmissionEmailNotifier(EmailNotificationMixin, Notifier):
     """A EmailNotifier to send updates for ReviewTask/GroupReviewTask submissions"""
 
     notification = 'submitted'
