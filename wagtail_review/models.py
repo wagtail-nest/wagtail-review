@@ -470,7 +470,10 @@ class ReviewTask(ReviewMixin, Task):
         """Returns True if the Reviewer instance provided, or linked to the user provided,
         is among the reviewers assigned to the task"""
         if not reviewer:
-            reviewer, created = Reviewer.objects.get_or_create(internal=user)
+            try:
+                reviewer = Reviewer.objects.get(internal=user)
+            except Reviewer.DoesNotExist:
+                return False
         return self.reviewers.filter(pk=reviewer.pk).exists()
 
     class Meta:
