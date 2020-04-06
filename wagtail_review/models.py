@@ -495,6 +495,8 @@ class GroupReviewTask(ReviewMixin, Task):
         """Returns True if the user provided, or the user linked to the reviewer
         provided, is in a group assigned to the task"""
         if reviewer and (not user or not user.is_authenticated):
+            if not reviewer.internal:
+                return False
             user = get_user_model().objects.get(pk=reviewer.internal.pk)
         return self.groups.all().filter(id__in=user.groups.all()).exists()
 
