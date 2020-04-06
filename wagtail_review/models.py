@@ -14,14 +14,12 @@ from django.utils.translation import ugettext_lazy as _
 
 from wagtail.admin.mail import send_mail
 from wagtail.admin.edit_handlers import FieldPanel
-from wagtail.core.models import Page, UserPagePermissionsProxy, Task, TaskState
+from wagtail.core.models import UserPagePermissionsProxy, Task, TaskState
 from django.shortcuts import redirect
 
 from .edit_handlers import ReviewerChooserPanel
 from .token import Token
 from .utils import normalize_email
-
-from modelcluster.fields import ParentalManyToManyField
 
 
 def get_review_url_impl(token):
@@ -403,7 +401,7 @@ class ReviewMixin:
 
     def is_reviewer_for_task(self, user, reviewer=None):
         """Returns True if the user or the reviewer is one of the reviewers able to approve or reject the
-        task. This is designed to be passed a user or Reviewer instance, from backend or frontend 
+        task. This is designed to be passed a user or Reviewer instance, from backend or frontend
         respectively, so must account for user potentially being None"""
         return NotImplementedError
 
@@ -428,7 +426,7 @@ class ReviewMixin:
         return False
 
     def get_actions(self, page, user, reviewer=None, **kwargs):
-        """Returns the possible actions the user can take. Note that this should 
+        """Returns the possible actions the user can take. Note that this should
         be able to be called with a user or a reviewer instance alone (ie where user=None)
         to account for external reviewers"""
         if self.is_reviewer_for_task(user, reviewer=reviewer) or user.is_superuser:
