@@ -399,7 +399,12 @@ class ReviewTaskState(TaskState):
 
 
 class ReviewMixin:
+    """A mixin which adds commenting functionality to Tasks"""
+
     def is_reviewer_for_task(self, user, reviewer=None):
+        """Returns True if the user or the reviewer is one of the reviewers able to approve or reject the
+        task. This is designed to be passed a user or Reviewer instance, from backend or frontend 
+        respectively, so must account for user potentially being None"""
         return NotImplementedError
 
     def start(self, workflow_state, user=None):
@@ -423,6 +428,9 @@ class ReviewMixin:
         return False
 
     def get_actions(self, page, user, reviewer=None, **kwargs):
+        """Returns the possible actions the user can take. Note that this should 
+        be able to be called with a user or a reviewer instance alone (ie where user=None)
+        to account for external reviewers"""
         if self.is_reviewer_for_task(user, reviewer=reviewer) or user.is_superuser:
             return [
                 ('review', _("Review")),
@@ -433,6 +441,9 @@ class ReviewMixin:
             return []
 
     def on_action(self, task_state, user, action_name, reviewer=None, comment='', **kwargs):
+        """Performs the action corresponding to the given action_name. Note that this should
+        be able to be called with a user or a reviewer instance alone (ie where user=None)
+        to account for external reviewers"""
         if action_name == 'approve':
             task_state.approve(user=user, reviewer=reviewer, comment=comment)
         elif action_name == 'reject':
@@ -449,6 +460,8 @@ class ReviewMixin:
 
 
 class ReviewTask(ReviewMixin, Task):
+    """A task which allows individually assigned reviewers (internal or external) to comment, approve, and reject"""
+
     reviewers = models.ManyToManyField(Reviewer)
 
     panels = Task.panels + [ReviewerChooserPanel('reviewers')]
@@ -456,6 +469,8 @@ class ReviewTask(ReviewMixin, Task):
     task_state_class = ReviewTaskState
 
     def is_reviewer_for_task(self, user, reviewer=None):
+        """Returns True if the Reviewer instance provided, or linked to the user provided,
+        is among the reviewers assigned to the task"""
         if not reviewer:
             try:
                 reviewer = Reviewer.objects.get(internal__pk=user.pk)
@@ -469,6 +484,8 @@ class ReviewTask(ReviewMixin, Task):
 
 
 class GroupReviewTask(ReviewMixin, Task):
+    """A task which allows all users in the task's assigned groups to comment, approve, and reject"""
+
     groups = models.ManyToManyField(Group, verbose_name=_('groups'), help_text=_('Pages at this step in a workflow will be commented on or approved by these groups of users'))
 
     panels = Task.panels + [FieldPanel('groups', heading=_("Choose review groups"))]
@@ -477,6 +494,8 @@ class GroupReviewTask(ReviewMixin, Task):
     task_state_class = ReviewTaskState
 
     def is_reviewer_for_task(self, user, reviewer=None):
+        """Returns True if the user provided, or the user linked to the reviewer
+        provided, is in a group assigned to the task"""
         if reviewer and (not user or not user.is_authenticated):
             user = get_user_model().objects.get(pk=reviewer.internal.pk)
         return self.groups.all().filter(id__in=user.groups.all()).exists()
