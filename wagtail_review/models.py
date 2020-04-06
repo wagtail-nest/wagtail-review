@@ -410,7 +410,7 @@ class ReviewMixin:
     def start(self, workflow_state, user=None):
         if workflow_state.page.locked_by:
             # If the person who locked the page isn't a reviewer, unlock the page
-            if not self.is_reviewer_for_task(user):
+            if not self.is_reviewer_for_task(workflow_state.page.locked_by):
                 workflow_state.page.locked = False
                 workflow_state.page.locked_by = None
                 workflow_state.page.locked_at = None
