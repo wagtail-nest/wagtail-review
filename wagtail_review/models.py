@@ -471,8 +471,8 @@ class ReviewTask(ReviewMixin, Task):
         is among the reviewers assigned to the task"""
         if not reviewer:
             try:
-                reviewer = Reviewer.objects.get(internal__pk=user.pk)
-            except (Reviewer.DoesNotExist, AttributeError):
+                reviewer = Reviewer.objects.get(internal=user)
+            except Reviewer.DoesNotExist:
                 return False
         return self.reviewers.filter(pk=reviewer.pk).exists()
 
