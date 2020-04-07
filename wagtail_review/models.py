@@ -154,13 +154,10 @@ class ReviewerPagePermissions:
         """
         Returns True if the workflow is in a ReviewTask or GroupReviewTask and the reviewer is one of the reviewers.
         """
-        try:
+        if isinstance(self.page.current_workflow_task, ReviewMixin):
             actions = {action[0] for action in self.page.current_workflow_task.get_actions(self.page, user=None, reviewer=self.reviewer)}
             if 'review' in actions:
                 return True
-        except (AttributeError, TypeError):
-            pass
-
         return False
 
     def can_view(self):
