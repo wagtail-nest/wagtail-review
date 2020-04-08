@@ -426,7 +426,7 @@ class ReviewMixin:
         """Returns the possible actions the user can take. Note that this should
         be able to be called with a user or a reviewer instance alone (ie where user=None)
         to account for external reviewers"""
-        if self.is_reviewer_for_task(user, reviewer=reviewer) or user.is_superuser:
+        if self.is_reviewer_for_task(user, reviewer=reviewer) or (user and user.is_superuser):
             return [
                 ('review', _("Review")),
                 ('approve', _("Approve")),
