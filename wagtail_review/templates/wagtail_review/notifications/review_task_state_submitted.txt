@@ -1,4 +1,4 @@
-{% extends 'wagtailadmin/notifications/base.html' %}
+{% extends 'wagtailadmin/notifications/base.txt' %}
 
 {% load i18n %}
 
@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block content %}
-{% blocktrans with task=task.name title=page.get_admin_display_title %}The page "{{ title }}" has been submitted for review in moderation stage "{{ task }}".{% endblocktrans %}
+{% blocktrans with task=task.name|safe title=page.get_admin_display_title|safe %}The page "{{ title }}" has been submitted for review in moderation stage "{{ task }}".{% endblocktrans %}
 
 
 {% trans "You can review the page here:" %} {{ review_url }}

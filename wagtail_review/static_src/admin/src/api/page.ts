@@ -51,15 +51,19 @@ export interface CommentApi {
 export default class PageAPIClient {
     pageId: number;
     csrfToken: string;
+    sharesUrl: string;
+    commentsUrl: string;
 
-    constructor(pageId: number, csrfToken: string) {
+    constructor(pageId: number, csrfToken: string, sharesUrl: string, commentsUrl: string) {
         this.pageId = pageId;
         this.csrfToken = csrfToken;
+        this.sharesUrl = sharesUrl;
+        this.commentsUrl = commentsUrl;
     }
 
     async getShares(): Promise<ShareApi[]> {
         let response = await fetch(
-            `/admin/wagtail_review/api/page/${this.pageId}/shares/`,
+            this.sharesUrl,
             {
                 credentials: 'same-origin'
             }
@@ -70,7 +74,7 @@ export default class PageAPIClient {
 
     async newShare(email: string): Promise<NewShareResponse> {
         let response = await fetch(
-            `/admin/wagtail_review/api/page/${this.pageId}/shares/`,
+            this.sharesUrl,
             {
                 method: 'POST',
                 credentials: 'same-origin',
@@ -103,7 +107,7 @@ export default class PageAPIClient {
 
     async getComments(): Promise<CommentApi[]> {
         let response = await fetch(
-            `/admin/wagtail_review/api/page/${this.pageId}/comments/`,
+            this.commentsUrl,
             {
                 credentials: 'same-origin'
             }

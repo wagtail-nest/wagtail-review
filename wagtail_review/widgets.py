@@ -1,6 +1,7 @@
 import json
 
 from django import forms
+from django.conf import settings
 from django.forms.widgets import SelectMultiple
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _
@@ -19,10 +20,18 @@ class AdminReviewerChooser(SelectMultiple):
         else:
             reviewers = Reviewer.objects.none()
 
+        # Get the csrf header name for AJAX in case a custom one is being used
+        # Replace underscores with hyphens and remove any HTTP prefix
+        # as otherwise these headers will be stripped
+        csrf_header_name = getattr(settings, 'CSRF_HEADER_NAME', 'HTTP_X_CSRFTOKEN').upper().replace('_', '-')
+        if csrf_header_name[:5] == 'HTTP-':
+            csrf_header_name = csrf_header_name[5:]
+
         return render_to_string("wagtail_review/widgets/reviewer_chooser.html", {
             'widget': self,
             'name': name,
-            'reviewers_data': json.dumps(ReviewerSerializer(reviewers, many=True).data)
+            'reviewers_data': json.dumps(ReviewerSerializer(reviewers, many=True).data),
+            'csrf_header_name': csrf_header_name
         })
 
     @property

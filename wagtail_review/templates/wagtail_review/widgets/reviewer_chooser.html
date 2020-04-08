@@ -1,1 +1,1 @@
-<div data-component="reviewer-chooser" data-input-name="{{ name }}" data-initial-reviewers="{{ reviewers_data }}"></div>
+<div data-component="reviewer-chooser" data-input-name="{{ name }}" data-initial-reviewers="{{ reviewers_data }}" data-users-url="{% url 'wagtail_review_admin:api:users_listing' %}" data-reviewer-url="{% url 'wagtail_review_admin:api:get_or_create_reviewer' %}" data-csrf-header-name="{{ csrf_header_name }}"></div>

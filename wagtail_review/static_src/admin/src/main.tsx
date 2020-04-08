@@ -20,7 +20,7 @@ import { putReviewer } from './actions/reviewer-chooser';
 
 declare let window: any;
 
-function initPageEditor(pageId: number) {
+function initPageEditor(pageId: number, sharesUrl: string, commentsUrl: string) {
     // Find the CSRF token on the form
     let csrfToken = ''
     const csrfTokenInputElement = document.body.querySelector('input[name="csrfmiddlewaretoken"]');
@@ -34,7 +34,7 @@ function initPageEditor(pageId: number) {
     // Set up redux stores and API
     const shareStore = createStore(shareReducer);
     const commentsStore = createStore(commentsReducer);
-    const api = new PageAPIClient(pageId, csrfToken);
+    const api = new PageAPIClient(pageId, csrfToken, sharesUrl, commentsUrl);
 
     initTabs([
         {
@@ -145,7 +145,7 @@ function initReviewerChooserWidget(container: HTMLElement) {
 
     // Set up redux store and API
     const reviewerChooserStore = createStore(reviewerChooserReducer);
-    const api = new ReviewerAPIClient(csrfToken);
+    const api = new ReviewerAPIClient(csrfToken, container.dataset.usersUrl, container.dataset.reviewerUrl, container.dataset.csrfHeaderName);
 
     // Add initial reviewers
     const initialReviewers: ReviewerApi[] = JSON.parse(
@@ -184,8 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.wagtailReviewInitialised = true;
 
     // wagtailPageId Injected by GuacamoleMenuItem in review/wagtail_hooks.py
-    if (window.wagtailPageId) {
-        initPageEditor(window.wagtailPageId);
+    if (window.wagtailPageId && window.sharesUrl && window.commentsUrl) {
+        initPageEditor(window.wagtailPageId, window.sharesUrl, window.commentsUrl);
     }
 
     document
