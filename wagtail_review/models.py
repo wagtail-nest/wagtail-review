@@ -188,12 +188,9 @@ class ReviewerPagePermissions:
             return False
 
         if self.reviewer.external_id and not (self.share and self.share.can_comment):
-            # External users can leave comments without a share if they are a reviewer
-            if self.can_review():
-                return True
-
-            # Reviewer can view but not comment
-            return False
+            # If external users have a Share with comments enabled, they can comment
+            # otherwise, they can comment if they are a reviewer for the current task
+            return self.can_review()
 
         return True
 
