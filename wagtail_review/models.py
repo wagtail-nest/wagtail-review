@@ -423,7 +423,7 @@ class ReviewMixin:
         """Returns the possible actions the user can take. Note that this should
         be able to be called with a user or a reviewer instance alone (ie where user=None)
         to account for external reviewers"""
-        if self.is_reviewer_for_task(user, reviewer=reviewer) or (user and user.is_superuser):
+        if self.is_reviewer_for_task(user, reviewer=reviewer):
             return [
                 ('review', _("Review")),
                 ('approve', _("Approve")),
@@ -462,13 +462,13 @@ class ReviewTask(ReviewMixin, Task):
 
     def is_reviewer_for_task(self, user, reviewer=None):
         """Returns True if the Reviewer instance provided, or linked to the user provided,
-        is among the reviewers assigned to the task"""
+        is among the reviewers assigned to the task, or the user is a superuser"""
         if not reviewer:
             try:
                 reviewer = Reviewer.objects.get(internal=user)
             except Reviewer.DoesNotExist:
-                return False
-        return self.reviewers.filter(pk=reviewer.pk).exists()
+                return (user and user.is_superuser)
+        return self.reviewers.filter(pk=reviewer.pk).exists() or (reviewer.internal and reviewer.internal.is_superuser) 
 
     class Meta:
         verbose_name = _('Review task')
@@ -487,12 +487,12 @@ class GroupReviewTask(ReviewMixin, Task):
 
     def is_reviewer_for_task(self, user, reviewer=None):
         """Returns True if the user provided, or the user linked to the reviewer
-        provided, is in a group assigned to the task"""
+        provided, is in a group assigned to the task, or is a superuser"""
         if reviewer and (not user or not user.is_authenticated):
             if not reviewer.internal:
                 return False
             user = get_user_model().objects.get(pk=reviewer.internal.pk)
-        return self.groups.all().filter(id__in=user.groups.all()).exists()
+        return user.is_superuser or self.groups.all().filter(id__in=user.groups.all()).exists()
 
     class Meta:
         verbose_name = _('Group review task')
