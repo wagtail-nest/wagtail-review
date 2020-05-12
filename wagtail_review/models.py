@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 
 import swapper
 
-from wagtail.admin.utils import send_mail
+from wagtail.admin.mail import send_mail
 from wagtail.core.models import UserPagePermissionsProxy
 
 
