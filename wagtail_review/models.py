@@ -424,9 +424,9 @@ class ReviewMixin:
         to account for external reviewers"""
         if self.is_reviewer_for_task(user, reviewer=reviewer) or (user and user.is_superuser):
             return [
-                ('review', _("Review")),
-                ('approve', _("Approve")),
-                ('reject', _("Reject")),
+                ('review', _("Review"), False),
+                ('approve', _("Approve"), False),
+                ('reject', _("Reject"), False),
             ]
         else:
             return []
