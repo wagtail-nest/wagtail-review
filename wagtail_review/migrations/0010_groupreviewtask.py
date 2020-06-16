@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('auth', '0011_update_proxy_permissions'),
-        ('wagtailcore', '0048_taskstate_finished_by'),
+        ('wagtailcore', '0049_taskstate_finished_by'),
         ('wagtail_review', '0009_wagtail_workflow'),
     ]
 

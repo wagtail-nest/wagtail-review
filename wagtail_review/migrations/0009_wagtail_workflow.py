@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wagtailcore', '0048_taskstate_finished_by'),
+        ('wagtailcore', '0049_taskstate_finished_by'),
         ('wagtail_review', '0008_rename_externaluser_to_externalreviewer'),
     ]
 

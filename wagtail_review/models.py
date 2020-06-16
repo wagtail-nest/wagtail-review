@@ -344,11 +344,9 @@ class ReviewResponse(models.Model):
 
 
 class ReviewTaskState(TaskState):
-    comment = models.TextField(blank=True)
     reviewer = models.ForeignKey(Reviewer, on_delete=models.CASCADE, related_name='+', null=True)
 
-    def _finalise(self, user=None, reviewer=None, comment=''):
-        self.comment = comment
+    def _finalise(self, user=None, reviewer=None):
         self.reviewer = reviewer
         if reviewer and reviewer.internal_id:
             self.finished_by_id = reviewer.internal_id
@@ -357,20 +355,18 @@ class ReviewTaskState(TaskState):
         self.finished_at = timezone.now()
 
     @transaction.atomic
-    def approve(self, user=None, reviewer=None, comment='', **kwargs):
+    def approve(self, user=None, reviewer=None, **kwargs):
         self._finalise(
             user=user,
             reviewer=reviewer,
-            comment=comment,
         )
         super().approve(**kwargs)
 
     @transaction.atomic
-    def reject(self, user=None, reviewer=None, comment='', **kwargs):
+    def reject(self, user=None, reviewer=None, **kwargs):
         self._finalise(
             user=user,
             reviewer=reviewer,
-            comment=comment,
         )
         super().reject(**kwargs)
 
