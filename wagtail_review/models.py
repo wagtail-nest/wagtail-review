@@ -1,3 +1,4 @@
+from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -17,9 +18,9 @@ from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.core.models import UserPagePermissionsProxy, Task, TaskState
 from django.shortcuts import redirect
 
-from .edit_handlers import ReviewerChooserPanel
 from .token import Token
 from .utils import normalize_email
+from .widgets import AdminReviewerChooser
 
 
 def get_review_url_impl(token):
@@ -455,7 +456,10 @@ class ReviewTask(ReviewMixin, Task):
 
     reviewers = models.ManyToManyField(Reviewer)
 
-    panels = Task.panels + [ReviewerChooserPanel('reviewers')]
+    admin_form_fields = Task.admin_form_fields + ['reviewers']
+    admin_form_widgets = {
+        'reviewers': AdminReviewerChooser,
+    }
 
     task_state_class = ReviewTaskState
 
@@ -479,8 +483,11 @@ class GroupReviewTask(ReviewMixin, Task):
 
     groups = models.ManyToManyField(Group, verbose_name=_('groups'), help_text=_('Pages at this step in a workflow will be commented on or approved by these groups of users'))
 
-    panels = Task.panels + [FieldPanel('groups', heading=_("Choose review groups"))]
-    exclude_on_edit = {'groups'}
+    admin_form_fields = Task.admin_form_fields + ['groups']
+    admin_form_readonly_on_edit_fields = ['groups']
+    admin_form_widgets = {
+        'groups': forms.CheckboxSelectMultiple,
+    }
 
     task_state_class = ReviewTaskState
 
