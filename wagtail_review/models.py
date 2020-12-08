@@ -9,7 +9,11 @@ from django.utils.functional import cached_property
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
-from wagtail.admin.utils import send_mail
+try:
+    from wagtail.admin.mail import send_mail  # Wagtail >= 2.7
+except ImportError:
+    from wagtail.admin.utils import send_mail  # Wagtail < 2.7
+
 from wagtail.core.models import UserPagePermissionsProxy
 
 from .token import Token
