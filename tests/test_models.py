@@ -18,10 +18,6 @@ class TestShareModel(TestCase):
         self.homer = User.objects.get(username="homer")
         self.bart = ExternalReviewer.objects.create(email="bart@example.com")
 
-    def test_fail(self):
-        # temporary failing test to verify nightly test config
-        self.assertEqual(2 + 2, 5)
-
     def test_send_share_email(self):
         share = Share.objects.create(external_user=self.bart, shared_by=self.homer, page_id=2)
 
