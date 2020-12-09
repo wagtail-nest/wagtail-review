@@ -3,7 +3,7 @@ name: Nightly Wagtail test
 
 on:
   schedule:
-    - cron: "30 0 * * *"
+    - cron: "45 0 * * *"
 
   workflow_dispatch:
 
@@ -11,7 +11,7 @@ jobs:
   nightly-test:
     # Cannot check the existence of secrets, so limiting to repository name to prevent all forks to run nightly.
     # See: https://github.com/actions/runner/issues/520
-    if: ${{ github.repository == 'torchbox/wagtail-review' }}
+    if: ${{ github.repository == 'wagtail/wagtail-review' }}
     runs-on: ubuntu-latest
 
     services:
