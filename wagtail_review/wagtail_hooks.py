@@ -3,10 +3,11 @@ from django.conf.urls import include, url
 from django.contrib import messages as django_messages
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.utils.html import format_html_join
+from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
+from wagtail import VERSION as WAGTAIL_VERSION
 from wagtail.admin import messages
 from wagtail.admin.action_menu import ActionMenuItem
 from wagtail.admin.menu import MenuItem
@@ -28,7 +29,17 @@ def register_admin_urls():
 class SubmitForReviewMenuItem(ActionMenuItem):
     label = _("Submit for review")
     name = 'action-submit-for-review'
-    template = 'wagtail_review/submit_for_review_menu_item.html'
+    if WAGTAIL_VERSION >= (2, 10):
+        template = 'wagtail_review/submit_for_review_menu_item.html'
+        icon_name = 'resubmit'
+    else:
+        template = 'wagtail_review/submit_for_review_menu_item_pre_2_10.html'
+
+    def render_html(self, request, parent_context):
+        html = super().render_html(request, parent_context)
+        if WAGTAIL_VERSION < (2, 7):
+            html = format_html('<li>{}</li>', html)
+        return html
 
     class Media:
         js = ['wagtail_review/js/submit.js']
