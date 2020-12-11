@@ -20,7 +20,7 @@ setup(
     license='BSD',
     long_description="An extension for Wagtail allowing pages to be submitted for review (including to non-Wagtail users) prior to publication",
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
@@ -30,6 +30,8 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Framework :: Django',
         'Framework :: Wagtail',
         'Framework :: Wagtail :: 2',
