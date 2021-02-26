@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='wagtail-review',
-    version='0.2',
+    version='0.2.1',
     description="Review workflow for Wagtail",
     author='Matthew Westcott',
     author_email='matthew.westcott@torchbox.com',
