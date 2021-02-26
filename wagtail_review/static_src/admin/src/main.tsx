@@ -14,6 +14,7 @@ import { showComments, loadComments, hideComments } from './actions/comments';
 declare let window: any;
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (!window.wagtailPageId) return;
     const shareStore = createStore(shareReducer);
     const commentsStore = createStore(commentsReducer);
     const api = new APIClient(
