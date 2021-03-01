@@ -1,7 +1,7 @@
-{% load i18n %}
+{% load i18n wagtailreview_admin_tags %}
 
-{% if user %}{% blocktrans with full_name=user.get_full_name|safe %}Dear {{ full_name }},{% endblocktrans %}{% endif %}
-{% blocktrans with full_name=submitter.get_full_name|safe page_title=page.title|safe %}
+{% if user %}{% blocktrans with full_name=user|user_display_name|safe %}Dear {{ full_name }},{% endblocktrans %}{% endif %}
+{% blocktrans with full_name=submitter|user_display_name|safe page_title=page.title|safe %}
 {{ full_name }} has requested a review from you on the page "{{ page_title }}". To review the page and provide your feedback, please visit this link:{% endblocktrans %}
 
 {{ respond_url|safe }}

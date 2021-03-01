@@ -19,6 +19,8 @@ except ImportError:
 
 from wagtail.core.models import UserPagePermissionsProxy
 
+from wagtail_review.text import user_display_name
+
 
 # make the setting name WAGTAILREVIEW_REVIEW_MODEL rather than WAGTAIL_REVIEW_REVIEW_MODEL
 swapper.set_app_prefix('wagtail_review', 'wagtailreview')
@@ -117,7 +119,7 @@ class Reviewer(models.Model):
         return self.email or self.user.email
 
     def get_name(self):
-        return self.user.get_full_name() if self.user else self.email
+        return user_display_name(self.user) if self.user else self.email
 
     def save(self, **kwargs):
         if not self.response_token:

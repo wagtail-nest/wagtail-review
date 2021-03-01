@@ -16,6 +16,7 @@ from wagtail.admin.views import generic
 
 from wagtail_review.forms import get_review_form_class, ReviewerFormSet
 from wagtail_review.models import Reviewer
+from wagtail_review.text import user_display_name
 
 
 Review = swapper.load_model('wagtail_review', 'Review')
@@ -84,7 +85,7 @@ def autocomplete_users(request):
     result_data = [
         {
             'id': user.pk,
-            'full_name': user.get_full_name(),
+            'full_name': user_display_name(user),
             'username': user.get_username(),
         }
         for user in users

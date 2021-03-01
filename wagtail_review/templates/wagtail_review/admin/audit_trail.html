@@ -1,5 +1,5 @@
 {% extends "wagtailadmin/base.html" %}
-{% load i18n static %}
+{% load i18n static wagtailreview_admin_tags %}
 
 {% block titletag %}{{ view.page_title }} {{ view.get_page_subtitle }}{% endblock %}
 
@@ -16,7 +16,7 @@
         {% for review in reviews %}
             <div class="review">
                 <h3>
-                    {% blocktrans with submitter=review.submitter.get_full_name datetime=review.created_at|date:"H:i j M Y" %}Review requested by {{ submitter }} at {{ datetime }}{% endblocktrans %} - <strong>{{ review.get_status_display }}</strong>
+                    {% blocktrans with submitter=review.submitter|user_display_name datetime=review.created_at|date:"H:i j M Y" %}Review requested by {{ submitter }} at {{ datetime }}{% endblocktrans %} - <strong>{{ review.get_status_display }}</strong>
                 </h3>
                 <table class="listing">
                     <thead>
