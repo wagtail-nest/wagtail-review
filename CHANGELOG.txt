@@ -1,4 +1,17 @@
-0.2 (xxxx-xx-xx)
+0.2.1 (2021-03-01)
+------------------
+
+NOTE: The 0.2.x branch is no longer recommended for use. 0.2 was a major rewrite of wagtail-review designed to integrate with Wagtail 2.10's moderation workflow features, but as of March 2021 the resources to complete this work have not been available, and various compatibility issues exist in the current release. We hope to release a workflow-enabled version of wagtail-review in future, as a new package.
+
+To upgrade to wagtail-review 0.3.x, first upgrade to 0.2.1 then run `./manage.py migrate wagtail_review 0003`. This will delete any existing review data.
+
+* Fix error on page creation (Matt Westcott)
+* Fix: Prevent share/comment tabs from showing on pages other than the edit page view (Matt Westcott)
+* Fix: Reinstate missing submitter name on notification email (Matt Westcott)
+* Fix: Allow reversing migrations to facilitate upgrading to 0.3.x (Matt Westcott)
+
+
+0.2 (2020-12-11)
 ----------------
 
 * Logged-in users are now redirected back to the Wagtail admin after submitting a review (Maylon Pedroso)
