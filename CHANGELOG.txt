@@ -1,3 +1,13 @@
+0.3 (2021-03-01)
+----------------
+
+* Roll back to 0.1.x codebase and apply compatibility fixes up to Wagtail 2.12
+* Logged-in users are now redirected back to the Wagtail admin after submitting a review (Maylon Pedroso)
+* Fix: CSRF token is now set correctly when the 'respond to review' view is the user's first request (Matt Westcott)
+* Fix: Prevent URLs in emails from being wrongly HTML-escaped (Karl Hobley, Matt Westcott)
+* Fix: Display username in place of full name where full name is blank or not implemented by a custom user model (Matt Westcott)
+
+
 0.2.1 (2021-03-01)
 ------------------
 
