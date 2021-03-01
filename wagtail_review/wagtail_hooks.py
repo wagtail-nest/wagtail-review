@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 
 import swapper
 
+from wagtail import VERSION as WAGTAIL_VERSION
 from wagtail.admin import messages
 from wagtail.admin.menu import MenuItem
 from wagtail.core import hooks
@@ -19,9 +20,7 @@ Review = swapper.load_model('wagtail_review', 'Review')
 
 
 # Whether to use the construct_page_action_menu hook to customise the page editor menu;
-# currently disabled, but will become a Wagtail version check as and when
-# https://github.com/wagtail/wagtail/pull/4781 is shipped
-HAS_ACTION_MENU_HOOK = False
+HAS_ACTION_MENU_HOOK = (WAGTAIL_VERSION >= (2, 4))
 
 if HAS_ACTION_MENU_HOOK:
     from wagtail.admin.action_menu import ActionMenuItem
