@@ -3,7 +3,7 @@ name: CI
 
 on:
   push:
-    branches: [ master, pre-workflow, stable/0.3.x ]
+    branches: [ main, stable/0.3.x ]
   pull_request:
 
 # Current configuration:
