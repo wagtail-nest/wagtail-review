@@ -1,3 +1,7 @@
+# THIS BRANCH IS DEPRECATED
+
+The code here is a major rewrite of wagtail-review designed to integrate with Wagtail 2.10's moderation workflow features, but as of March 2021 the resources to complete this work have not been available, and various compatibility issues exist in its current state. We hope to release a workflow-enabled version of wagtail-review in future, as a new package.
+
 # wagtail-review
 
 An extension for Wagtail allowing pages to be submitted for review (including to non-Wagtail users) prior to publication.
