@@ -13,6 +13,7 @@ on:
 # - django 3.0, python 3.8, wagtail 2.9, postgres
 # - django 3.1, python 3.8, wagtail 2.10, sqlite
 # - django 3.1, python 3.8, wagtail 2.11, postgres
+# - django 3.1, python 3.9, wagtail 2.12, postgres
 # - django 3.1, python 3.9, wagtail master, postgres (allow failures)
 jobs:
   test:
@@ -49,6 +50,11 @@ jobs:
           - python: 3.8
             django: "Django>=3.1,<3.2"
             wagtail: "wagtail>=2.11,<2.12"
+            database: "postgresql"
+            experimental: false
+          - python: 3.9
+            django: "Django>=3.1,<3.2"
+            wagtail: "wagtail>=2.12,<2.13"
             database: "postgresql"
             experimental: false
           - python: 3.9
