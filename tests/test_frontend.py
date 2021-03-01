@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from wagtail.core.models import Page
+from wagtail.core.models import Page, Site
 
 from wagtail_review.models import Review, Reviewer
 from tests.models import SimplePage
@@ -26,6 +26,10 @@ class TestFrontendViews(TestCase):
 
         self.page.title = "Simple page with draft edit"
         self.page.save_revision()
+
+        # Need to update site record so the hostname matches what Django will send to the view
+        # This prevents a 400 (Bad Request) error when the preview is generated
+        Site.objects.update(hostname="testserver")
 
     def test_view_token_must_match(self):
         response = self.client.get('/review/view/%d/xxxxx/' % self.reviewer.id)

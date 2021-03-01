@@ -11,6 +11,7 @@ on:
 # - django 2.2, python 3.7, wagtail 2.7, postgres
 # - django 3.0, python 3.8, wagtail 2.8, postgres
 # - django 3.0, python 3.8, wagtail 2.8, sqlite
+# - django 3.0, python 3.8, wagtail 2.9, postgres
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -37,6 +38,11 @@ jobs:
             django: "Django>=3.0,<3.1"
             wagtail: "wagtail>=2.8,<2.9"
             database: "sqlite3"
+            experimental: false
+          - python: 3.8
+            django: "Django>=3.0,<3.1"
+            wagtail: "wagtail>=2.9,<2.10"
+            database: "postgresql"
             experimental: false
 
     services:
