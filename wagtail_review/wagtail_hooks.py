@@ -8,8 +8,8 @@ from django.utils.translation import ugettext_lazy as _
 
 import swapper
 
-from wagtail import VERSION as WAGTAIL_VERSION
 from wagtail.admin import messages
+from wagtail.admin.action_menu import ActionMenuItem
 from wagtail.admin.menu import MenuItem
 from wagtail.core import hooks
 
@@ -17,13 +17,6 @@ from wagtail_review import admin_urls
 from wagtail_review.forms import get_review_form_class, ReviewerFormSet
 
 Review = swapper.load_model('wagtail_review', 'Review')
-
-
-# Whether to use the construct_page_action_menu hook to customise the page editor menu;
-HAS_ACTION_MENU_HOOK = (WAGTAIL_VERSION >= (2, 4))
-
-if HAS_ACTION_MENU_HOOK:
-    from wagtail.admin.action_menu import ActionMenuItem
 
 
 @hooks.register('register_admin_urls')
@@ -35,49 +28,22 @@ def register_admin_urls():
 
 # Replace 'submit for moderation' action with 'submit for review'
 
-if HAS_ACTION_MENU_HOOK:
-    class SubmitForReviewMenuItem(ActionMenuItem):
-        label = _("Submit for review")
-        name = 'action-submit-for-review'
-        template = 'wagtail_review/submit_for_review_menu_item.html'
+class SubmitForReviewMenuItem(ActionMenuItem):
+    label = _("Submit for review")
+    name = 'action-submit-for-review'
+    template = 'wagtail_review/submit_for_review_menu_item.html'
 
-        class Media:
-            js = ['wagtail_review/js/submit.js']
-            css = {
-                'all': ['wagtail_review/css/create_review.css']
-            }
+    class Media:
+        js = ['wagtail_review/js/submit.js']
+        css = {
+            'all': ['wagtail_review/css/create_review.css']
+        }
 
-    @hooks.register('construct_page_action_menu')
-    def remove_submit_to_moderator_option(menu_items, request, context):
-        for (i, menu_item) in enumerate(menu_items):
-            if menu_item.name == 'action-submit':
-                menu_items[i] = SubmitForReviewMenuItem()
-else:
-    # Fallback for construct_page_action_menu being unavailable:
-    # use Javascript to replace the 'submit for moderation' button
-    @hooks.register('insert_editor_css')
-    def submit_for_review_css():
-        return format_html(
-            '<link rel="stylesheet" href="{}">',
-            static('wagtail_review/css/create_review.css')
-        )
-
-    @hooks.register('insert_editor_js')
-    def submit_for_review_js():
-        return format_html('''
-                <script>
-                    $(function() {{
-                        $('input[name="action-submit"]').attr({{
-                            'name': 'action-submit-for-review',
-                            'value': "Submit for review",
-                            'data-url': "{0}"
-                        }})
-                    }});
-                </script>
-                <script src="{1}"></script>
-            ''',
-            reverse('wagtail_review_admin:create_review'), static('wagtail_review/js/submit.js')
-        )
+@hooks.register('construct_page_action_menu')
+def remove_submit_to_moderator_option(menu_items, request, context):
+    for (i, menu_item) in enumerate(menu_items):
+        if menu_item.name == 'action-submit':
+            menu_items[i] = SubmitForReviewMenuItem()
 
 
 def handle_submit_for_review(request, page):
