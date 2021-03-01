@@ -28,6 +28,15 @@ class TestAdminViews(TestCase):
         # check that JS is imported
         self.assertContains(response, "wagtail_review/js/submit.js")
 
+    def test_submit_for_review_action_on_create(self):
+        """Test that 'submit for review' appears in the page action menu"""
+        response = self.client.get('/admin/pages/add/tests/simplepage/%d/' % self.homepage.pk)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertContains(response, "Submit for review")
+        # check that JS is imported
+        self.assertContains(response, "wagtail_review/js/submit.js")
+
     def test_create_review(self):
         response = self.client.get('/admin/wagtail_review/create_review/')
         self.assertEqual(response.status_code, 200)
