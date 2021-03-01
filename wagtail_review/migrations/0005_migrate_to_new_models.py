@@ -102,5 +102,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(migrate_into_new_models),
+        migrations.RunPython(migrate_into_new_models, migrations.RunPython.noop),
     ]
