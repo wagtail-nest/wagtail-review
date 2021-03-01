@@ -59,7 +59,6 @@ def respond(request, reviewer_id, token):
         if WAGTAIL_VERSION < (2, 7):
             dummy_request = page.dummy_request(request)
             dummy_request.META["CSRF_COOKIE"] = request.META["CSRF_COOKIE"]
-            # FIXME: add the equivalent of this for the >=2.7 path
 
             dummy_request.wagtailreview_mode = 'respond'
             dummy_request.wagtailreview_reviewer = reviewer
