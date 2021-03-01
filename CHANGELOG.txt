@@ -1,13 +1,6 @@
-0.2.1 (2020-02-26)
-------------------
-
-* Fix error on page creation (Matt Westcott)
-
-
-0.2 (2020-12-11)
+0.2 (xxxx-xx-xx)
 ----------------
 
-* Added compatibility with Wagtail 2.9 - 2.11 (Matt Westcott)
 * Logged-in users are now redirected back to the Wagtail admin after submitting a review (Maylon Pedroso)
 * Fix: CSRF token is now set correctly when the 'respond to review' view is the user's first request (Matt Westcott)
 

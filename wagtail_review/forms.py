@@ -1,19 +1,20 @@
 from django import forms
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext
 
-from wagtail_review.models import ExternalReviewer, Reviewer, ReviewRequest, Share
+import swapper
 
-User = get_user_model()
+from wagtail_review.models import Reviewer, Response
+
+Review = swapper.load_model('wagtail_review', 'Review')
 
 
 class CreateReviewForm(forms.ModelForm):
     class Meta:
-        model = ReviewRequest
+        model = Review
         fields = []
 
 
@@ -30,7 +31,7 @@ def get_review_form_class():
         )
 
 
-class BaseReviewAssigneeFormSet(forms.BaseFormSet):
+class BaseReviewerFormSet(forms.BaseInlineFormSet):
     def add_fields(self, form, index):
         super().add_fields(form, index)
         form.fields[DELETION_FIELD_NAME].widget = forms.HiddenInput()
@@ -47,58 +48,25 @@ class BaseReviewAssigneeFormSet(forms.BaseFormSet):
             )
 
 
-class ReviewAssigneeForm(forms.Form):
-    user = forms.ModelChoiceField(queryset=User.objects.all(), required=False, widget=forms.HiddenInput)
-    email = forms.EmailField(required=False, widget=forms.HiddenInput)
-
-    def clean(self):
-        cleaned_data = super().clean()
-
-        if not cleaned_data['user'] and not cleaned_data['email']:
-            raise ValidationError(
-                ugettext("Please specify either a user or an email address."),
-                code='user_or_email_unspecified'
-            )
-
-        if cleaned_data['user'] and cleaned_data['email']:
-            raise ValidationError(
-                ugettext("Please specify either a user or an email address. Not both"),
-                code='both_user_and_email_specified'
-            )
-
-        return cleaned_data
-
-    def get_user(self, review_request):
-        if self.cleaned_data['user']:
-            user, created = Reviewer.objects.get_or_create(
-                internal=self.cleaned_data['user'],
-            )
-            return user
-        else:
-            external_user, created = ExternalReviewer.objects.get_or_create(
-                email=self.cleaned_data['email'],
-            )
-            share, created = Share.objects.get_or_create(
-                external_user=external_user,
-                page_id=review_request.page_revision.page_id,
-                defaults={
-                    'shared_by_id': review_request.submitted_by_id,
-                    'shared_at': review_request.submitted_at,
-                    'can_comment': True,
-                }
-            )
-            user, created = Reviewer.objects.get_or_create(
-                external=external_user,
-            )
-            return user
-
-    class Meta:
-        fields = ['user', 'email']
-
-
-ReviewAssigneeFormSet = forms.formset_factory(
-    ReviewAssigneeForm,
-    formset=BaseReviewAssigneeFormSet,
+ReviewerFormSet = forms.inlineformset_factory(
+    Review, Reviewer,
+    fields=['user', 'email'],
+    formset=BaseReviewerFormSet,
     extra=0,
-    can_delete=True
+    widgets={
+        'user': forms.HiddenInput,
+        'email': forms.HiddenInput,
+    }
 )
+
+
+class ResponseForm(forms.ModelForm):
+    class Meta:
+        model = Response
+        fields = ['result', 'comment']
+        widgets = {
+            'result': forms.RadioSelect,
+            'comment': forms.Textarea(attrs={
+                'placeholder': 'Enter your comments',
+            }),
+        }

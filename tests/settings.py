@@ -1,7 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
 import os
-
 import django
 
 from wagtail import VERSION as WAGTAIL_VERSION
@@ -51,17 +50,30 @@ TEMPLATES = [
     },
 ]
 
-MIDDLEWARE = [
+# Django 1.11
+MIDDLEWARE_CLASSES = (
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'wagtail.core.middleware.SiteMiddleware',
+)
+
+# Django 2.x
+MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
 
-if WAGTAIL_VERSION < (2, 9):
-    MIDDLEWARE.append('wagtail.core.middleware.SiteMiddleware')
+    'wagtail.core.middleware.SiteMiddleware',
+)
 
 INSTALLED_APPS = (
     'wagtail_review',

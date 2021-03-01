@@ -7,6 +7,7 @@ from wagtail.core import urls as wagtail_urls
 
 from wagtail_review import urls as wagtailreview_urls
 
+
 urlpatterns = [
     url(r'^admin/', include(wagtailadmin_urls)),
     url(r'^review/', include(wagtailreview_urls)),

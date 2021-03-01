@@ -1,0 +1,141 @@
+.annotator-filter *,
+.annotator-notice,
+.annotator-widget * {
+    font-family: 'Open Sans', sans-serif;
+}
+
+.annotator-widget {
+    background-color: #333;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.annotator-widget::after {
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 20px solid #333;
+    height: 0;
+    width: 0;
+}
+
+.annotator-hl {
+    background-color: rgba(0, 177, 179, 0.4);
+}
+
+.annotator-viewer div:first-of-type {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+    font-style: normal;
+    line-height: 18px;
+    padding: 5px;
+}
+
+.annotator-viewer p {
+    color: #fff;
+    font-size: 13px;
+    font-style: italic;
+    font-weight: 700;
+    line-height: 18px;
+    margin-bottom: 3px;
+}
+
+.annotator-adder {
+    background-image: url("data:image/svg+xml,%3Csvg width='36' height='44' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M26.8 36L18 44l-8.8-8H4a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4h-5.2z' fill='%23333' fill-rule='evenodd'/%3E%3C/svg%3E%0A");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    height: 44px;
+    width: 36px;
+}
+
+.annotator-adder:hover {
+    background-position: center;
+}
+
+.annotator-adder::before {
+    -moz-box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.44);
+    -webkit-box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.44);
+    border-radius: 4px;
+    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.44);
+    content: "";
+    height: 36px;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 36px;
+}
+
+.annotator-adder::after {
+    color: #fff;
+    content: "d";
+    font-family: wagtail;
+    font-size: 20px;
+    left: 8px;
+    pointer-events: none;
+    position: absolute;
+    top: 8px;
+}
+
+.annotator-editor .annotator-item:first-child textarea {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: #fff;
+    font-style: normal;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+
+.annotator-editor .annotator-item:first-child textarea:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.annotator-editor .annotator-controls {
+    background: none;
+    border: 0;
+    box-shadow: none;
+}
+
+.annotator-editor a,
+.annotator-editor a.annotator-save,
+.annotator-editor a.annotator-save,
+.annotator-editor a:focus,
+.annotator-editor a:hover,
+.annotator-filter .annotator-filter-active label,
+.annotator-filter .annotator-filter-navigation button:hover {
+    background: none;
+    border-radius: 4px;
+    border: 1px solid #626262;
+    box-shadow: none;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 18px;
+    padding: 4px 8px;
+    text-shadow: none;
+    text-transform: uppercase;
+}
+
+.annotator-editor a.annotator-save {
+    background-color: #007d7e;
+    border: 0;
+}
+
+.annotator-editor a.annotator-save:hover,
+.annotator-editor a.annotator-save:focus {
+    background-color: #00676a;
+}
+
+.annotator-editor a:after {
+    display: none;
+}
+
+.annotator-editor a:not(:last-child) {
+    margin-right: 7px;
+}
+
+.annotator-editor a:hover,
+.annotator-editor a:focus {
+    background: none;
+    border-color: #626262;
+}

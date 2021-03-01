@@ -2,5 +2,3 @@
 __pycache__
 /dist
 /build
-/.coverage
-/htmlcov

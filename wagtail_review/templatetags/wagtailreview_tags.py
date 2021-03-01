@@ -1,25 +1,35 @@
 from django import template
 
+from wagtail_review.forms import ResponseForm
+
 register = template.Library()
 
 
 @register.inclusion_tag('wagtail_review/annotate.html', takes_context=True)
 def wagtailreview(context):
     request = context['request']
-    token = getattr(request, 'wagtailreview_token', None)
+    review_mode = getattr(request, 'wagtailreview_mode', None)
+    reviewer = getattr(request, 'wagtailreview_reviewer', None)
 
-    if token is not None:
-        perms = getattr(request, 'wagtailreview_perms')
-        review_request = getattr(request, 'wagtailreview_review_request', None)
-
+    if review_mode == 'respond' or review_mode == 'comment':
         return {
-            'allow_comments': perms.can_comment(),
-            'allow_responses': review_request is not None and not review_request.is_closed,
-            'token': token,
+            'mode': review_mode,
+            'allow_annotations': (reviewer.review.status != 'closed'),
+            'show_closed': (reviewer.review.status == 'closed'),
+            'allow_responses': (review_mode == 'respond' and reviewer.review.status != 'closed'),
+            'reviewer': reviewer,
+            'token': reviewer.response_token,
+            'response_form': ResponseForm()
         }
-    else:
+    elif review_mode == 'view':
         return {
-            'allow_comments': False,
+            'mode': review_mode,
+            'show_closed': False,
+            'allow_annotations': False,
             'allow_responses': False,
-            'token': None,
+            'reviewer': reviewer,
+            'token': reviewer.view_token
         }
+
+    else:
+        return {'mode': None}

@@ -1,24 +1,82 @@
 {% load static %}
 
-<div id="comments">
-
-</div>
-
-{% if allow_comments %}
+{% if mode %}
     <link rel="stylesheet" href="{% static 'wagtailadmin/css/userbar.css' %}">
-    <script src="{% static 'wagtail_review/js/vendor/annotator-2.0.0a3.min.js' %}"></script>
-    <script src="{% static 'wagtail_review/js/wagtail-review-frontend.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'wagtail_review/css/annotator.css' %}">
+    <link rel="stylesheet" href="{% static 'wagtail_review/css/respond.css' %}">
+    <script src="{% static 'wagtail_review/js/annotator-2.0.0a3.min.js' %}"></script>
+    <script src="{% static 'wagtail_review/js/annotator-extensions.js' %}"></script>
+
+    {% if allow_responses %}
+        <div class="wagtailreview-respond">
+            <a href="#" class="js-show-submit" id="wagtailreview-respond-button">
+                <span>Submit your review</span>
+                <span class="wagtail-icon wagtail-icon-wagtail"></span>
+            </a>
+            <form class="wagtailreview-respond-form" id="wagtailreview-respond-form" action="{{ reviewer.get_respond_url }}" method="POST">
+                {% csrf_token %}
+                {% include "wagtail_review/response_form_fields.html" %}
+            </form>
+        </div>
+    {% elif allow_annotations %}
+        {# provide an empty respond form so that we can pull the CSRF token from it #}
+        <form id="wagtailreview-respond-form">{% csrf_token %}</form>
+    {% elif show_closed %}
+        <div class="wagtailreview-respond">
+            <span class="button-review-closed">This review is now closed</span>
+        </div>
+    {% endif %}
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var commentsElement = document.getElementById('comments');
-            {% url 'wagtail_review:api:base' as api_base_url %}
-            var commentsApi = new WagtailReview.APIClient('{{ api_base_url|escapejs }}', '{{ token|escapejs }}');
-            WagtailReview.initCommentsApp(commentsElement, commentsApi, function (addAnnotatableSection) {
-                for (var element of document.querySelectorAll('[data-contentpath-field]')) {
-                    addAnnotatableSection(element.dataset.contentpathField, element);
-                }
-            }, {% if allow_responses %}true{% else %}false{% endif %});
+        var app = new annotator.App();
+        {% if allow_annotations %}
+            app.include(annotator.ui.main, {
+                viewerExtensions: [annotatorExt.viewerWithUsernames]
+            });
+        {% else %}
+            app.include(annotatorExt.viewerModeUi);
+        {% endif %}
+        app.include(annotator.storage.http, {
+            'prefix': "{% url 'wagtail_review:annotations_api_root' %}",
+            'urls': {
+                create: 'annotations/',
+                update: 'annotations/{id}/',
+                destroy: 'annotations/{id}/',
+                search: 'search/'
+            },
+            'headers': {
+                {% if allow_annotations %}
+                    'X-CSRFToken': document.getElementById('wagtailreview-respond-form').csrfmiddlewaretoken.value,
+                {% endif %}
+                'X-WagtailReview-mode': '{{ mode }}',
+                'X-WagtailReview-reviewer': '{{ reviewer.id }}',
+                'X-WagtailReview-token': '{{ token }}',
+            }
         });
+        app.start().then(function () {
+            app.annotations.load();
+        });
+
+        {% if allow_responses %}
+            document.addEventListener('DOMContentLoaded', function() {
+                var form = document.getElementById('wagtailreview-respond-form');
+                form.style.display = 'none';
+                formShown = false;
+
+                var button = document.getElementById('wagtailreview-respond-button');
+                button.addEventListener('click', function() {
+                    if (formShown) {
+                        form.style.display = 'none';
+                        this.className = 'js-show-submit';
+                        formShown = false;
+                    } else {
+                        form.style.display = 'block';
+                        this.className = 'js-show-submit js-icon-up';
+                        formShown = true;
+                    }
+                    return false;
+                });
+            });
+       {% endif %}
     </script>
 {% endif %}

@@ -1,54 +1,75 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
-from django.urls import reverse
-from django.utils import timezone
 
-from wagtail.core.models import Page, Site
+from wagtail.core.models import Page
 
-from wagtail_review.models import Share
-from wagtail_review.token import Token
-
-from .factories import ReviewerFactory
-from .models import SimplePage
+from wagtail_review.models import Review, Reviewer
+from tests.models import SimplePage
 
 
-class TestReviewView(TestCase):
+class TestFrontendViews(TestCase):
     fixtures = ['test.json']
 
     def setUp(self):
-        homepage = Page.objects.get(url_path='/home/').specific
-        self.page = homepage.add_child(instance=SimplePage(title="A simple page"))
-        self.page_revision = self.page.save_revision()
-        self.reviewer = ReviewerFactory.create_external()
-        self.token = Token(self.reviewer, self.page_revision)
-        self.share = Share.objects.create(
-            external_user=self.reviewer.external,
-            page=self.page,
-            can_comment=True,
-            shared_by=User.objects.get(username="homer"),
+        self.admin_user = User.objects.create_superuser(
+            username='admin', email='admin@example.com', password='password'
         )
 
-        # Need to update site record so the hostname matches what Django will sent to the view
-        # This prevents a 400 (Bad Request) error when the preview is generated
-        Site.objects.update(hostname="testserver")
+        self.homepage = Page.objects.get(url_path='/home/').specific
+        self.page = SimplePage(title="Simple page original", slug="simple-page")
+        self.homepage.add_child(instance=self.page)
 
-    def test_get_review(self):
-        response = self.client.get(reverse('wagtail_review:review', args=[self.token.encode()]))
+        self.page.title = "Simple page submitted"
+        submitted_revision = self.page.save_revision()
+        self.review = Review.objects.create(page_revision=submitted_revision, submitter=self.admin_user)
+        self.reviewer = Reviewer.objects.create(review=self.review, user=User.objects.get(username='spongebob'))
+
+        self.page.title = "Simple page with draft edit"
+        self.page.save_revision()
+
+    def test_view_token_must_match(self):
+        response = self.client.get('/review/view/%d/xxxxx/' % self.reviewer.id)
+        self.assertEqual(response.status_code, 403)
+
+    def test_view(self):
+        response = self.client.get('/review/view/%d/%s/' % (self.reviewer.id, self.reviewer.view_token))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'tests/simple_page.html')
+        self.assertContains(response, "<h1>Simple page submitted</h1>")
+        self.assertContains(response, "var app = new annotator.App();")
+        self.assertContains(response, "app.include(annotatorExt.viewerModeUi);")
 
-        self.share.refresh_from_db()
-        self.assertTrue(self.share.first_accessed_at)
-        self.assertTrue(self.share.last_accessed_at)
-
-    def test_get_review_without_share(self):
-        self.share.delete()
-        response = self.client.get(reverse('wagtail_review:review', args=[self.token.encode()]))
+    def test_response_token_must_match(self):
+        response = self.client.get('/review/respond/%d/xxxxx/' % self.reviewer.id)
         self.assertEqual(response.status_code, 403)
 
-    def test_get_review_with_expired_share(self):
-        self.share.expires_at = timezone.now()
-        self.share.save()
+    def test_respond_view(self):
+        response = self.client.get('/review/respond/%d/%s/' % (self.reviewer.id, self.reviewer.response_token))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "<h1>Simple page submitted</h1>")
+        self.assertContains(response, "var app = new annotator.App();")
+        self.assertContains(response, "app.include(annotator.ui.main,")
 
-        response = self.client.get(reverse('wagtail_review:review', args=[self.token.encode()]))
-        self.assertEqual(response.status_code, 403)
+    def test_respond_view_post_not_authenticated_user(self):
+        response = self.client.post('/review/respond/%d/%s/' % (self.reviewer.id, self.reviewer.response_token),
+                                    data={'result': 'approve', 'comment': 'comment'})
+        self.assertEqual(response.status_code, 200)
+        review_response = self.reviewer.review.get_responses().last()
+        self.assertEqual(review_response.result, 'approve')
+        self.assertEqual(review_response.comment, 'comment')
+
+    def test_respond_view_post_authenticated_user(self):
+        self.client.login(username='admin', password='password')
+        response = self.client.post('/review/respond/%d/%s/' % (self.reviewer.id, self.reviewer.response_token),
+                                    data={'result': 'approve', 'comment': 'comment'})
+        self.client.logout()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/admin/wagtail_review/reviews/')
+        review_response = self.reviewer.review.get_responses().last()
+        self.assertEqual(review_response.result, 'approve')
+        self.assertEqual(review_response.comment, 'comment')
+
+    def test_live_page_has_no_annotator_js(self):
+        response = self.client.get('/simple-page/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "<h1>Simple page original</h1>")
+        self.assertNotContains(response, "var app = new annotator.App();")

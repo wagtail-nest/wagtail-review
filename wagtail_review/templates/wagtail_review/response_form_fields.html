@@ -1,0 +1,18 @@
+<fieldset>
+    <legend>Your review</legend>
+
+    <div class="wagtailreview-respond-form__radios">
+        {% for radio in response_form.result %}
+            {{ radio }}
+        {% endfor %}
+    </div>
+
+    <div class="wagtailreview-respond-form__comment">
+        <label for="id_comment">Leave a comment</label>
+        {{ response_form.comment }}
+    </div>
+
+    <div class="wagtailreview-respond-form__submit">
+        <input type="submit" value="Submit" id="submit" />
+    </div>
+</fieldset>

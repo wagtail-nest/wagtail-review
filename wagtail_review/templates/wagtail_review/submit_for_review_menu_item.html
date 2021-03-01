@@ -1,2 +1,3 @@
-{% load wagtailadmin_tags %}
-<button type="button" name="{{ name }}" value="{{ label }}" class="button" data-url="{% url 'wagtail_review_admin:create_review' %}">{% if icon_name %}{% icon name=icon_name %}{% endif %}{{ label }}</button>
+<li>
+    <input type="button" name="{{ name }}" value="{{ label }}" class="button" data-url="{% url 'wagtail_review_admin:create_review' %}" />
+</li>

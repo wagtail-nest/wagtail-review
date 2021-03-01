@@ -1,13 +1,15 @@
 from __future__ import absolute_import, unicode_literals
 
-from django.conf.urls import include, url
-
-from wagtail_review.api import urls as api_urls
-from wagtail_review.views import frontend
+from django.conf.urls import url
+from wagtail_review.views import frontend, annotations_api
 
 app_name = 'wagtail_review'
 
 urlpatterns = [
-    url(r'^review/([\w\.\-\_]+)/$', frontend.review, name='review'),
-    url(r'^api/', include(api_urls, namespace='api')),
+    url(r'^view/(\d+)/(\w+)/$', frontend.view, name='view'),
+    url(r'^respond/(\d+)/(\w+)/$', frontend.respond, name='respond'),
+    url(r'^api/$', annotations_api.root, name='annotations_api_root'),
+    url(r'^api/search/$', annotations_api.search, name='annotations_api_search'),
+    url(r'^api/annotations/$', annotations_api.index, name='annotations_api_index'),
+    url(r'^api/annotations/(\d+)/$', annotations_api.item, name='annotations_api_item'),
 ]

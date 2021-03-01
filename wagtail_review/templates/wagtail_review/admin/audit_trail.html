@@ -13,10 +13,10 @@
     {% include "wagtailadmin/shared/header.html" with title=view.page_title subtitle=page.get_admin_display_title icon=view.header_icon %}
 
     <div class="nice-padding">
-        {% for review, review_url in reviews %}
+        {% for review in reviews %}
             <div class="review">
                 <h3>
-                    {% blocktrans with submitter=review.submitted_by.get_full_name datetime=review.submitted_at|date:"H:i j M Y" %}Review requested by {{ submitter }} at {{ datetime }}{% endblocktrans %} - <strong>{{ review.get_status_display }}</strong>
+                    {% blocktrans with submitter=review.submitter.get_full_name datetime=review.created_at|date:"H:i j M Y" %}Review requested by {{ submitter }} at {{ datetime }}{% endblocktrans %} - <strong>{{ review.get_status_display }}</strong>
                 </h3>
                 <table class="listing">
                     <thead>
@@ -28,15 +28,15 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for response in review.responses.all %}
+                        {% for response in review.get_responses %}
                             <tr>
-                                <td>{{ response.submitted_by.get_name }}</td>
-                                <td>{{ response.get_status_display }}</td>
-                                <td>{{ response.submitted_at|date:"H:i j M Y" }}</td>
+                                <td>{{ response.reviewer.get_name }}</td>
+                                <td>{{ response.get_result_display }}</td>
+                                <td>{{ response.created_at|date:"H:i j M Y" }}</td>
                                 <td>{{ response.comment }}</td>
                             </tr>
                         {% endfor %}
-                        {% for reviewer in review.get_assignees_without_response %}
+                        {% for reviewer in review.get_non_responding_reviewers %}
                             <tr>
                                 <td>{{ reviewer.get_name }}</td>
                                 <td>{% trans "Awaiting response" %}</td>
@@ -49,12 +49,12 @@
 
                 <ul class="actions">
                     <li>
-                        <a class="button button-secondary button-small" href="{{ review_url }}">{% trans "View page" %}</a>
+                        <a class="button button-secondary button-small" href="{% url 'wagtail_review_admin:view_review_page' review_id=review.id %}">{% trans "View page" %}</a>
                     </li>
                     <li>
                         <a class="button button-secondary button-small" href="{% url 'wagtailadmin_pages:edit' review.page_revision.page.id %}">{% trans "Edit page" %}</a>
                     </li>
-                    {% if review.is_closed %}
+                    {% if review.status == 'closed' %}
                         <li>
                             <form action="{% url 'wagtail_review_admin:reopen_review' review_id=review.id %}" method="POST">
                                 {% csrf_token %}
