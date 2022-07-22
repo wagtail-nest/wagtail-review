@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.utils.module_loading import import_string
-from django.utils.translation import ugettext
+from django.utils.translation import gettext
 
 import swapper
 
@@ -43,7 +43,7 @@ class BaseReviewerFormSet(forms.BaseInlineFormSet):
         # custom error message.
         if (self.total_form_count() - len(self.deleted_forms) < 1):
             raise ValidationError(
-                ugettext("Please select one or more reviewers."),
+                gettext("Please select one or more reviewers."),
                 code='too_few_forms'
             )
 
