@@ -1,3 +1,8 @@
+0.3.1 (xxxx-xx-xx) - IN DEVELOPMENT
+------------------
+
+* Fixes for Django 4.x
+
 0.3 (2021-03-01)
 ----------------
 

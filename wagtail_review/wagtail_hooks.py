@@ -1,10 +1,11 @@
-from django.conf.urls import include, url
+from django.conf.urls import include
+from django.urls import re_path
 from django.contrib import messages as django_messages
 from django.templatetags.static import static
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.html import format_html
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 import swapper
 
@@ -23,7 +24,7 @@ Review = swapper.load_model('wagtail_review', 'Review')
 @hooks.register('register_admin_urls')
 def register_admin_urls():
     return [
-        url(r'^wagtail_review/', include(admin_urls, namespace='wagtail_review_admin')),
+        re_path(r'^wagtail_review/', include(admin_urls, namespace='wagtail_review_admin')),
     ]
 
 
