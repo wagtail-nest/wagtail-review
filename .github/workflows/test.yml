@@ -3,18 +3,17 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
   pull_request:
 
 # Current configuration:
 # - django 2.2, python 3.6, wagtail 2.6, sqlite
-# - django 2.2, python 3.7, wagtail 2.7, postgres
-# - django 3.0, python 3.8, wagtail 2.8, sqlite
-# - django 3.0, python 3.8, wagtail 2.9, postgres
-# - django 3.1, python 3.8, wagtail 2.10, sqlite
-# - django 3.1, python 3.8, wagtail 2.11, postgres
+# - django 2.2, python 3.7, wagtail 2.8, postgres
+# - django 3.0, python 3.8, wagtail 2.10, sqlite
 # - django 3.1, python 3.9, wagtail 2.12, postgres
-# - django 3.1, python 3.9, wagtail master, postgres (allow failures)
+# - django 3.2, python 3.9, wagtail 2.14, sqlite
+# - django 4.0, python 3.9, wagtail 2.16, postgresql
+# - django 4.0, python 3.9, wagtail 3.0, sqlite (allow failures)
+# - django 4.1, python 3.10, wagtail master, postgres (allow failures)
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -29,38 +28,42 @@ jobs:
             experimental: false
           - python: 3.7
             django: "Django>=2.2,<2.3"
-            wagtail: "wagtail>=2.7,<2.8"
-            database: "postgresql"
-            experimental: false
-          - python: 3.8
-            django: "Django>=3.0,<3.1"
             wagtail: "wagtail>=2.8,<2.9"
-            database: "sqlite3"
-            experimental: false
-          - python: 3.8
-            django: "Django>=3.0,<3.1"
-            wagtail: "wagtail>=2.9,<2.10"
+            psycopg: "psycopg2==2.8.6"
             database: "postgresql"
             experimental: false
           - python: 3.8
-            django: "Django>=3.1,<3.2"
+            django: "Django>=3.0,<3.1"
             wagtail: "wagtail>=2.10,<2.11"
             database: "sqlite3"
-            experimental: false
-          - python: 3.8
-            django: "Django>=3.1,<3.2"
-            wagtail: "wagtail>=2.11,<2.12"
-            database: "postgresql"
             experimental: false
           - python: 3.9
             django: "Django>=3.1,<3.2"
             wagtail: "wagtail>=2.12,<2.13"
             database: "postgresql"
+            psycopg: "psycopg2>=2.6"
             experimental: false
           - python: 3.9
-            django: "Django>=3.1,<3.2"
-            wagtail: "git+https://github.com/wagtail/wagtail.git@master#egg=wagtail"
+            django: "Django>=3.2,<3.3"
+            wagtail: "wagtail>=2.14,<2.15"
+            database: "sqlite3"
+            experimental: false
+          - python: 3.9
+            django: "Django>=4.0,<4.1"
+            wagtail: "wagtail>=2.16,<2.17"
             database: "postgresql"
+            psycopg: "psycopg2>=2.6"
+            experimental: false
+          - python: 3.9
+            django: "Django>=4.0,<4.1"
+            wagtail: "wagtail>=3.0,<3.1"
+            database: "sqlite3"
+            experimental: true
+          - python: "3.10"
+            django: "Django>=4.1,<4.2"
+            wagtail: "git+https://github.com/wagtail/wagtail.git@main#egg=wagtail"
+            database: "postgresql"
+            psycopg: "psycopg2>=2.6"
             experimental: true
 
     services:
@@ -79,9 +82,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install "psycopg2>=2.6"
           pip install "${{ matrix.django }}"
           pip install "${{ matrix.wagtail }}"
+      - name: Install psycopg
+        if: matrix.psycopg
+        run: |
+          pip install "${{ matrix.psycopg }}"
+      - name: Install package
+        run: |
           pip install -e .[testing]
       - name: Test
         run: ./runtests.py
