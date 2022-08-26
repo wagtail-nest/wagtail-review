@@ -58,7 +58,7 @@ jobs:
             django: "Django>=4.0,<4.1"
             wagtail: "wagtail>=3.0,<3.1"
             database: "sqlite3"
-            experimental: true
+            experimental: false
           - python: "3.10"
             django: "Django>=4.1,<4.2"
             wagtail: "git+https://github.com/wagtail/wagtail.git@main#egg=wagtail"
