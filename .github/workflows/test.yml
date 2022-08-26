@@ -59,7 +59,7 @@ jobs:
             wagtail: "wagtail>=3.0,<3.1"
             database: "sqlite3"
             experimental: true
-          - python: 3.10
+          - python: "3.10"
             django: "Django>=4.1,<4.2"
             wagtail: "git+https://github.com/wagtail/wagtail.git@main#egg=wagtail"
             database: "postgresql"
