@@ -39,11 +39,11 @@ class SubmitForReviewMenuItem(ActionMenuItem):
     else:
         template = 'wagtail_review/submit_for_review_menu_item_pre_2_10.html'
 
-    def render_html(self, request, parent_context):
-        html = super().render_html(request, parent_context)
-        if WAGTAIL_VERSION < (2, 7):
+    if WAGTAIL_VERSION < (2, 7):
+        def render_html(self, request, parent_context):
+            html = super().render_html(request, parent_context)
             html = format_html('<li>{}</li>', html)
-        return html
+            return html
 
     class Media:
         js = ['wagtail_review/js/submit.js']
