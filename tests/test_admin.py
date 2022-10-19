@@ -125,6 +125,7 @@ class TestAdminViews(TestCase):
 
         self.assertRedirects(response, '/admin/pages/1/')
 
+        self.homepage.refresh_from_db()
         revision = self.homepage.get_latest_revision()
         review = Review.objects.get(page_revision=revision)
         self.assertEqual(review.reviewers.count(), 3)
