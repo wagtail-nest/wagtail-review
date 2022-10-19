@@ -17,6 +17,7 @@ try:
 except ImportError:
     from wagtail.admin.utils import send_mail  # Wagtail < 2.7
 
+from wagtail import VERSION as WAGTAIL_VERSION
 from wagtail.core.models import UserPagePermissionsProxy
 
 from wagtail_review.text import user_display_name
@@ -32,11 +33,18 @@ REVIEW_STATUS_CHOICES = [
 ]
 
 
+if WAGTAIL_VERSION >= (4, 0):
+    revision_model = "wagtailcore.Revision"
+    revision_page_fk_relation = "page_revision__object_id"
+else:
+    revision_model = "wagtailcore.PageRevision"
+    revision_page_fk_relation = "page_revision__page_id"
+
 class BaseReview(models.Model):
     """
     Abstract base class for Review models. Can be subclassed to specify application-specific fields, e.g. review type
     """
-    page_revision = models.ForeignKey('wagtailcore.PageRevision', related_name='+', on_delete=models.CASCADE, editable=False)
+    page_revision = models.ForeignKey(revision_model, related_name='+', on_delete=models.CASCADE, editable=False)
     status = models.CharField(max_length=30, default='open', choices=REVIEW_STATUS_CHOICES, editable=False)
     submitter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+', editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -68,7 +76,7 @@ class BaseReview(models.Model):
         reviewed_pages = (
             cls.objects
             .order_by('-created_at')
-            .values_list('page_revision__page_id', 'created_at')
+            .values_list(revision_page_fk_relation, 'created_at')
         )
         # Annotate datetime when a review was last created for this page
         last_review_requested_at = Case(

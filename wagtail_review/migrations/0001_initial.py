@@ -4,7 +4,24 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from django.db import migrations, models
+from django.db.migrations.recorder import MigrationRecorder
 import django.db.models.deletion
+from wagtail import VERSION as WAGTAIL_VERSION
+
+
+def get_revision_model():
+    revision_model = "wagtailcore.PageRevision"
+    if WAGTAIL_VERSION >= (4, 0, 0):
+        try:
+            if MigrationRecorder.Migration.objects.filter(
+                app="wagtailcore", name="0070_rename_pagerevision_revision"
+            ).exists():
+                revision_model = "wagtailcore.Revision"
+        except (django.db.utils.OperationalError, django.db.utils.ProgrammingError):
+            # normally happens when running tests
+            pass
+
+    return revision_model
 
 
 class Migration(migrations.Migration):
@@ -24,7 +41,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('status', models.CharField(choices=[('open', 'Open'), ('closed', 'Closed')], default='open', editable=False, max_length=30)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('page_revision', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='wagtailcore.PageRevision')),
+                ('page_revision', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='+', to=get_revision_model())),
                 ('submitter', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='+', to=settings.AUTH_USER_MODEL)),
             ],
             options={
