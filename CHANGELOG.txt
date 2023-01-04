@@ -2,7 +2,7 @@
 ------------------
 
 * Fixes for Django 4.x (Adrien Lemaire)
-* Fixes for Wagtail 4.x (Matt Westcott, Dan Braghis, Sage Abdullah)
+* Fixes for Wagtail 3.x and 4.x (Matt Westcott, Dan Braghis, Sage Abdullah)
 
 
 0.3 (2021-03-01)
