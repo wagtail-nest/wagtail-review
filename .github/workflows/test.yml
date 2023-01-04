@@ -16,12 +16,12 @@ on:
 # - django 4.1, python 3.10, wagtail master, postgres (allow failures)
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         include:
-          - python: 3.6.15
+          - python: 3.6
             django: "Django>=2.2,<2.3"
             wagtail: "wagtail>=2.6,<2.7"
             database: "sqlite3"
