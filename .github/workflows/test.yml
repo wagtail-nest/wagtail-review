@@ -13,6 +13,8 @@ on:
 # - django 3.2, python 3.9, wagtail 2.14, sqlite
 # - django 4.0, python 3.9, wagtail 2.16, postgresql
 # - django 4.0, python 3.9, wagtail 3.0, sqlite (allow failures)
+# - django 4.1, python 3.10, wagtail 4.0, postgresql
+# - django 4.1, python 3.10, wagtail 4.1, sqlite
 # - django 4.1, python 3.10, wagtail master, postgres (allow failures)
 jobs:
   test:
@@ -57,6 +59,17 @@ jobs:
           - python: 3.9
             django: "Django>=4.0,<4.1"
             wagtail: "wagtail>=3.0,<3.1"
+            database: "sqlite3"
+            experimental: false
+          - python: "3.10"
+            django: "Django>=4.1,<4.2"
+            wagtail: "wagtail>=4.0,<4.1"
+            database: "postgresql"
+            psycopg: "psycopg2>=2.6"
+            experimental: false
+          - python: "3.10"
+            django: "Django>=4.1,<4.2"
+            wagtail: "wagtail>=4.1,<4.2"
             database: "sqlite3"
             experimental: false
           - python: "3.10"
