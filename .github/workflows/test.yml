@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - python: 3.6
+          - python: 3.6.15
             django: "Django>=2.2,<2.3"
             wagtail: "wagtail>=2.6,<2.7"
             database: "sqlite3"
