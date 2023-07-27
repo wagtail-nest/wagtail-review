@@ -9,7 +9,6 @@ from django.views.generic.detail import DetailView
 
 import swapper
 
-from wagtail import VERSION as WAGTAIL_VERSION
 from wagtail.admin import messages
 from wagtail.admin.modal_workflow import render_modal_workflow
 from wagtail.admin.views import generic
@@ -155,19 +154,13 @@ def view_review_page(request, review_id=None):
     else:
         review_mode = 'view'
 
-    if WAGTAIL_VERSION < (2, 7):
-        dummy_request = page.dummy_request(request)
-        dummy_request.wagtailreview_reviewer = reviewer
-        dummy_request.wagtailreview_mode = review_mode
-        return page.serve_preview(dummy_request, page.default_preview_mode)
-    else:
-        return page.make_preview_request(
-            original_request=request,
-            extra_request_attrs={
-                'wagtailreview_reviewer': reviewer,
-                'wagtailreview_mode': review_mode,
-            }
-        )
+    return page.make_preview_request(
+        original_request=request,
+        extra_request_attrs={
+            'wagtailreview_reviewer': reviewer,
+            'wagtailreview_mode': review_mode,
+        }
+    )
 
 
 @require_POST

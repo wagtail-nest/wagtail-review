@@ -1,9 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
 import os
-import django
-
-from wagtail import VERSION as WAGTAIL_VERSION
 
 DATABASES = {
     'default': {
@@ -59,9 +56,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-if WAGTAIL_VERSION < (2, 9):
-    MIDDLEWARE.append('wagtail.core.middleware.SiteMiddleware')
-
 INSTALLED_APPS = (
     'wagtail_review',
     'tests',
@@ -72,7 +66,7 @@ INSTALLED_APPS = (
     'wagtail.images',
     'wagtail.documents',
     'wagtail.admin',
-    'wagtail.core',
+    'wagtail',
 
     'taggit',
 

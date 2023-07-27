@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from wagtail.core.models import Page
+from wagtail.models import Page
 
 from wagtail_review.models import Review, Reviewer
 
