@@ -16,7 +16,7 @@ def view(request, reviewer_id, token):
     if token != reviewer.view_token:
         raise PermissionDenied
 
-    page = reviewer.review.page_revision.as_page_object()
+    page = reviewer.review.page_revision.as_object()
     return page.make_preview_request(
         original_request=request,
         extra_request_attrs={
@@ -43,7 +43,7 @@ def respond(request, reviewer_id, token):
             return HttpResponse(SUCCESS_RESPONSE_MESSAGE)
 
     else:
-        page = reviewer.review.page_revision.as_page_object()
+        page = reviewer.review.page_revision.as_object()
         # Fetch the CSRF token so that Django will return a set-cookie header in the case that this is
         # the user's first request, and ensure that the dummy request (where the submit-review form is
         # rendered) is using the same token
