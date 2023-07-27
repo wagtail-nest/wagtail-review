@@ -48,7 +48,7 @@ class BaseReview(models.Model):
 
     @cached_property
     def revision_as_page(self):
-        return self.page_revision.as_page_object()
+        return self.page_revision.as_object()
 
     def get_annotations(self):
         return Annotation.objects.filter(reviewer__review=self).prefetch_related('ranges')
@@ -132,13 +132,13 @@ class Reviewer(models.Model):
     def get_respond_url(self, absolute=False):
         url = reverse('wagtail_review:respond', args=[self.id, self.response_token])
         if absolute:
-            url = settings.BASE_URL + url
+            url = settings.WAGTAILADMIN_BASE_URL + url
         return url
 
     def get_view_url(self, absolute=False):
         url = reverse('wagtail_review:view', args=[self.id, self.view_token])
         if absolute:
-            url = settings.BASE_URL + url
+            url = settings.WAGTAILADMIN_BASE_URL + url
         return url
 
     def send_request_email(self):

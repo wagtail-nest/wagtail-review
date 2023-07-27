@@ -4,7 +4,7 @@ from django.conf.urls import include
 from django.urls import path
 
 from wagtail.admin import urls as wagtailadmin_urls
-from wagtail.core import urls as wagtail_urls
+from wagtail import urls as wagtail_urls
 
 from wagtail_review import urls as wagtailreview_urls
 
