@@ -12,13 +12,9 @@ from django.utils.translation import gettext_lazy as _
 
 import swapper
 
-try:
-    from wagtail.admin.mail import send_mail  # Wagtail >= 2.7
-except ImportError:
-    from wagtail.admin.utils import send_mail  # Wagtail < 2.7
+from wagtail.admin.mail import send_mail
 
-from wagtail import VERSION as WAGTAIL_VERSION
-from wagtail.core.models import UserPagePermissionsProxy
+from wagtail.models import UserPagePermissionsProxy
 
 from wagtail_review.text import user_display_name
 
@@ -33,12 +29,8 @@ REVIEW_STATUS_CHOICES = [
 ]
 
 
-if WAGTAIL_VERSION >= (4, 0):
-    revision_model = "wagtailcore.Revision"
-    revision_page_fk_relation = "page_revision__object_id"
-else:
-    revision_model = "wagtailcore.PageRevision"
-    revision_page_fk_relation = "page_revision__page_id"
+revision_model = "wagtailcore.Revision"
+revision_page_fk_relation = "page_revision__object_id"
 
 class BaseReview(models.Model):
     """

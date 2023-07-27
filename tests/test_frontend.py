@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from wagtail.core.models import Page, Site
+from wagtail.models import Page, Site
 
 from wagtail_review.models import Review, Reviewer
 from tests.models import SimplePage
