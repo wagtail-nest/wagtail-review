@@ -23,7 +23,7 @@ Add to your project's URL config:
     from wagtail_review import urls as wagtailreview_urls
 
     # Somewhere above the include(wagtail_urls) line:
-        url(r'^review/', include(wagtailreview_urls)),
+        path("review/", include(wagtailreview_urls)),
 
 Add a `{% wagtailreview %}` tag to your project's base template(s), towards the bottom of the document `<body>`:
 
