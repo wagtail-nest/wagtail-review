@@ -35,6 +35,12 @@ jobs:
             experimental: false
           - python: "3.11"
             django: "Django>=4.2,<4.3"
+            wagtail: "wagtail>=5.1rc1,<5.2"
+            database: "postgresql"
+            psycopg: "psycopg2>=2.6"
+            experimental: false
+          - python: "3.11"
+            django: "Django>=4.2,<4.3"
             wagtail: "git+https://github.com/wagtail/wagtail.git@main#egg=wagtail"
             database: "postgresql"
             psycopg: "psycopg2>=2.6"
