@@ -25,6 +25,8 @@ class TestAdminViews(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertContains(response, "Submit for review")
+        # check that the action button has a data-url attribute
+        self.assertContains(response, 'data-url="/admin/wagtail_review/create_review/"')
         # check that JS is imported
         self.assertContains(response, "wagtail_review/js/submit.js")
 
@@ -34,6 +36,8 @@ class TestAdminViews(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertContains(response, "Submit for review")
+        # check that the action button has a data-url attribute
+        self.assertContains(response, 'data-url="/admin/wagtail_review/create_review/"')
         # check that JS is imported
         self.assertContains(response, "wagtail_review/js/submit.js")
 
