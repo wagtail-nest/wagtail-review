@@ -13,7 +13,9 @@ class TestAdminViews(TestCase):
     fixtures = ['test.json']
 
     def setUp(self):
-        User.objects.create_superuser(username='admin', email='admin@example.com', password='password')
+        self.admin_user = User.objects.create_superuser(
+            username='admin', email='admin@example.com', password='password'
+        )
         self.assertTrue(
             self.client.login(username='admin', password='password')
         )
@@ -174,3 +176,22 @@ class TestAdminViews(TestCase):
         self.assertEqual(len(mail.outbox), 2)
         email_recipients = set(email.to[0] for email in mail.outbox)
         self.assertEqual(email_recipients, {'someone@example.com', 'spongebob@example.com'})
+
+    def test_reviews_index(self):
+        revision = self.homepage.save_revision()
+        review = Review.objects.create(page_revision=revision, submitter=self.admin_user)
+        review.reviewers.create(user=User.objects.get(username='spongebob'))
+        response = self.client.get('/admin/wagtail_review/reviews/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<a href="/admin/wagtail_review/reviews/%d/">Home</a>' % self.homepage.pk, html=True)
+        self.assertContains(response, '<td class="status">Open</td>', html=True)
+
+    def test_review_detail(self):
+        revision = self.homepage.save_revision()
+        review = Review.objects.create(page_revision=revision, submitter=self.admin_user)
+        review.reviewers.create(user=User.objects.get(username='spongebob'))
+        response = self.client.get('/admin/wagtail_review/reviews/%d/' % self.homepage.pk)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Review requested by admin')
+        self.assertContains(response, '<td>Spongebob Squarepants</td>')
+        self.assertContains(response, '<td>Awaiting response</td>')

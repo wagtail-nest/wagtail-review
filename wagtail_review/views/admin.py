@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import JsonResponse
@@ -12,6 +13,7 @@ import swapper
 from wagtail.admin import messages
 from wagtail.admin.modal_workflow import render_modal_workflow
 from wagtail.admin.views import generic
+from wagtail.models import Page
 
 from wagtail_review.forms import get_review_form_class, ReviewerFormSet
 from wagtail_review.models import Reviewer
@@ -118,7 +120,8 @@ class AuditTrailView(DetailView):
         context = super().get_context_data(**kwargs)
 
         context['reviews'] = Review.objects.filter(
-            page_revision__page=self.object
+            page_revision__object_id=str(self.object.pk),
+            page_revision__base_content_type=ContentType.objects.get_for_model(Page)
         ).order_by('created_at').select_related('submitter').prefetch_related('reviewers__responses')
         context['page_permissions'] = self.object.permissions_for_user(self.request.user)
 
