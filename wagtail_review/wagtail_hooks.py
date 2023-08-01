@@ -32,7 +32,7 @@ def register_admin_urls():
 class SubmitForReviewMenuItem(ActionMenuItem):
     label = _("Submit for review")
     name = 'action-submit-for-review'
-    template = 'wagtail_review/submit_for_review_menu_item.html'
+    template_name = 'wagtail_review/submit_for_review_menu_item.html'
     icon_name = 'resubmit'
 
     class Media:
