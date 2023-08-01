@@ -84,3 +84,4 @@ PASSWORD_HASHERS = (
 
 WAGTAIL_SITE_NAME = 'wagtail-review test'
 WAGTAILADMIN_BASE_URL = 'http://test.local'
+ALLOWED_HOSTS = ['localhost', 'testserver']

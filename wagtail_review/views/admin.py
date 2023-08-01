@@ -140,7 +140,7 @@ def view_review_page(request, review_id=None):
         # if they have edit access to the page, give them the submitter's
         # read-only credentials so that they can see annotations
 
-        page = review.page_revision.as_page_object()
+        page = review.page_revision.as_object()
         perms = page.permissions_for_user(request.user)
 
         if not (perms.can_edit() or perms.can_publish()):
@@ -151,7 +151,7 @@ def view_review_page(request, review_id=None):
         except Reviewer.DoesNotExist:
             raise PermissionDenied
 
-    page = review.page_revision.as_page_object()
+    page = review.page_revision.as_object()
     if reviewer.user == request.user:
         review_mode = 'comment'
     else:
@@ -169,7 +169,7 @@ def view_review_page(request, review_id=None):
 @require_POST
 def close_review(request, review_id=None):
     review = get_object_or_404(Review, id=review_id)
-    page = review.page_revision.as_page_object()
+    page = review.page_revision.as_object()
     perms = page.permissions_for_user(request.user)
 
     if not (perms.can_edit() or perms.can_publish()):
@@ -186,7 +186,7 @@ def close_review(request, review_id=None):
 @require_POST
 def close_and_publish(request, review_id=None):
     review = get_object_or_404(Review, id=review_id)
-    page = review.page_revision.as_page_object()
+    page = review.page_revision.as_object()
     perms = page.permissions_for_user(request.user)
     if not perms.can_publish():
         raise PermissionDenied
@@ -203,7 +203,7 @@ def close_and_publish(request, review_id=None):
 @require_POST
 def reopen_review(request, review_id=None):
     review = get_object_or_404(Review, id=review_id)
-    page = review.page_revision.as_page_object()
+    page = review.page_revision.as_object()
     perms = page.permissions_for_user(request.user)
 
     if not (perms.can_edit() or perms.can_publish()):

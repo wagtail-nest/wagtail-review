@@ -180,18 +180,28 @@ class TestAdminViews(TestCase):
     def test_reviews_index(self):
         revision = self.homepage.save_revision()
         review = Review.objects.create(page_revision=revision, submitter=self.admin_user)
+        review.reviewers.create(user=self.admin_user)
         review.reviewers.create(user=User.objects.get(username='spongebob'))
         response = self.client.get('/admin/wagtail_review/reviews/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<a href="/admin/wagtail_review/reviews/%d/">Home</a>' % self.homepage.pk, html=True)
         self.assertContains(response, '<td class="status">Open</td>', html=True)
 
-    def test_review_detail(self):
+    def test_review_audit_trail(self):
         revision = self.homepage.save_revision()
         review = Review.objects.create(page_revision=revision, submitter=self.admin_user)
+        review.reviewers.create(user=self.admin_user)
         review.reviewers.create(user=User.objects.get(username='spongebob'))
         response = self.client.get('/admin/wagtail_review/reviews/%d/' % self.homepage.pk)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Review requested by admin')
         self.assertContains(response, '<td>Spongebob Squarepants</td>')
         self.assertContains(response, '<td>Awaiting response</td>')
+
+    def test_view_review(self):
+        revision = self.homepage.save_revision()
+        review = Review.objects.create(page_revision=revision, submitter=self.admin_user)
+        review.reviewers.create(user=self.admin_user)
+        review.reviewers.create(user=User.objects.get(username='spongebob'))
+        response = self.client.get('/admin/wagtail_review/reviews/%d/view/' % review.pk)
+        self.assertEqual(response.status_code, 200)
