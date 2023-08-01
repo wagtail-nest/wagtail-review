@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='wagtail-review',
-    version='0.3.1',
+    version='0.4',
     description="Review workflow for Wagtail",
     author='Matthew Westcott',
     author_email='matthew.westcott@torchbox.com',
@@ -35,5 +35,6 @@ setup(
         'Framework :: Wagtail',
         'Framework :: Wagtail :: 3',
         'Framework :: Wagtail :: 4',
+        'Framework :: Wagtail :: 5',
     ],
 )
