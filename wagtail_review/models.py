@@ -12,9 +12,13 @@ from django.utils.translation import gettext_lazy as _
 
 import swapper
 
+from wagtail import VERSION as WAGTAIL_VERSION
 from wagtail.admin.mail import send_mail
 
-from wagtail.models import UserPagePermissionsProxy
+if WAGTAIL_VERSION >= (5, 1):
+    from wagtail.permission_policies.pages import PagePermissionPolicy
+else:
+    from wagtail.models import UserPagePermissionsProxy
 
 from wagtail_review.text import user_display_name
 
@@ -64,7 +68,11 @@ class BaseReview(models.Model):
         """
         Return a queryset of pages which have reviews, for which the user has edit permission
         """
-        user_perms = UserPagePermissionsProxy(user)
+        if WAGTAIL_VERSION >= (5, 1):
+            editable_pages = PagePermissionPolicy().instances_user_has_permission_for(user, "change")
+        else:
+            editable_pages = UserPagePermissionsProxy(user).editable_pages()
+
         reviewed_pages = (
             cls.objects
             .order_by('-created_at')
@@ -79,7 +87,7 @@ class BaseReview(models.Model):
             output_field=models.DateTimeField(),
         )
         return (
-            user_perms.editable_pages()
+            editable_pages
             .filter(pk__in=(page[0] for page in reviewed_pages))
             .annotate(last_review_requested_at=last_review_requested_at)
             .order_by('-last_review_requested_at')
