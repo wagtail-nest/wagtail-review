@@ -6,7 +6,7 @@ An extension for Wagtail allowing pages to be submitted for review (including to
 
 ## Requirements
 
-Wagtail 4.1 or higher
+Wagtail 5.2 or higher
 
 ## Installation
 

@@ -1,3 +1,10 @@
+0.5 (xxxx-xx-xx)
+----------------
+
+* Fixes for Wagtail 6.x (Matt Westcott)
+* Dropped support for Wagtail <5.2, Django <4.2
+
+
 0.4 (2023-08-01)
 ----------------
 
