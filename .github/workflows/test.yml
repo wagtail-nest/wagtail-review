@@ -6,11 +6,11 @@ on:
   pull_request:
 
 # Current configuration:
-# - django 3.2, python 3.8, wagtail 4.1, sqlite
-# - django 4.1, python 3.9, wagtail 5.0, postgresql
-# - django 4.2, python 3.10, wagtail 5.1, sqlite
-# - django 4.2, python 3.11, wagtail 5.2, postgresql
-# - django 4.1, python 3.11, wagtail main, postgres (allow failures)
+# - django 4.2, python 3.8, wagtail 5.2, sqlite
+# - django 4.2, python 3.9, wagtail 6.0, postgresql
+# - django 5.0, python 3.11, wagtail 6.1, sqlite
+# - django 5.1, python 3.12, wagtail 6.2, postgresql
+# - django 5.1, python 3.12, wagtail main, postgres (allow failures)
 jobs:
   test:
     runs-on: ubuntu-20.04
@@ -19,37 +19,37 @@ jobs:
       matrix:
         include:
           - python: "3.8"
-            django: "Django>=3.2,<3.3"
-            wagtail: "wagtail>=4.1,<4.2"
+            django: "Django>=4.2,<4.3"
+            wagtail: "wagtail>=5.2,<5.3"
             database: "sqlite3"
             experimental: false
           - python: "3.9"
-            django: "Django>=4.1,<4.2"
-            wagtail: "wagtail>=5.0,<5.1"
-            database: "postgresql"
-            psycopg: "psycopg2>=2.6"
-            experimental: false
-          - python: "3.10"
             django: "Django>=4.2,<4.3"
-            wagtail: "wagtail>=5.1,<5.2"
+            wagtail: "wagtail>=6.0,<6.1"
+            database: "postgresql"
+            psycopg: "psycopg>=3.2"
+            experimental: false
+          - python: "3.11"
+            django: "Django>=5.0,<5.1"
+            wagtail: "wagtail>=6.1,<6.2"
             database: "sqlite3"
             experimental: false
-          - python: "3.11"
-            django: "Django>=4.2,<4.3"
-            wagtail: "wagtail>=5.2,<5.3"
+          - python: "3.12"
+            django: "Django>=5.1,<5.2"
+            wagtail: "wagtail>=6.2,<6.3"
             database: "postgresql"
-            psycopg: "psycopg2>=2.6"
+            psycopg: "psycopg>=3.2"
             experimental: false
-          - python: "3.11"
-            django: "Django>=4.2,<4.3"
+          - python: "3.12"
+            django: "Django>=5.1,<5.2"
             wagtail: "git+https://github.com/wagtail/wagtail.git@main#egg=wagtail"
             database: "postgresql"
-            psycopg: "psycopg2>=2.6"
+            psycopg: "psycopg>=3.2"
             experimental: true
 
     services:
       postgres:
-        image: postgres:12
+        image: postgres:14
         env:
           POSTGRES_PASSWORD: postgres
         ports:
