@@ -4,11 +4,11 @@ from setuptools import setup, find_packages
 
 setup(
     name='wagtail-review',
-    version='0.4',
+    version='0.5',
     description="Review workflow for Wagtail",
     author='Matthew Westcott',
     author_email='matthew.westcott@torchbox.com',
-    url='https://github.com/wagtail/wagtail-review',
+    url='https://github.com/wagtail-nest/wagtail-review',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[

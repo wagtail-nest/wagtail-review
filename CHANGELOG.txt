@@ -1,4 +1,4 @@
-0.5 (xxxx-xx-xx)
+0.5 (2024-08-19)
 ----------------
 
 * Fixes for Wagtail 6.x (Matt Westcott)
