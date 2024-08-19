@@ -75,7 +75,7 @@ class TestAdminViews(TestCase):
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.content)
         self.assertEqual(response_json['step'], 'form')
-        self.assertFormsetError(response, 'reviewer_formset', None, None, "Please select one or more reviewers.")
+        self.assertFormSetError(response.context['reviewer_formset'], None, None, "Please select one or more reviewers.")
 
         # reject a formset with only deleted items
         response = self.client.post('/admin/wagtail_review/create_review/', {
@@ -91,7 +91,7 @@ class TestAdminViews(TestCase):
         self.assertEqual(response.status_code, 200)
         response_json = json.loads(response.content)
         self.assertEqual(response_json['step'], 'form')
-        self.assertFormsetError(response, 'reviewer_formset', None, None, "Please select one or more reviewers.")
+        self.assertFormSetError(response.context['reviewer_formset'], None, None, "Please select one or more reviewers.")
 
     def test_validate_ok(self):
         response = self.client.post('/admin/wagtail_review/create_review/', {
