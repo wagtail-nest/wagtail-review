@@ -99,5 +99,5 @@ class ReviewsMenuItem(MenuItem):
 def register_images_menu_item():
     return ReviewsMenuItem(
         _('Reviews'), reverse('wagtail_review_admin:dashboard'),
-        name='reviews', classnames='icon icon-tick', order=1000
+        name='reviews', icon_name='tick-inverse', order=1000
     )
